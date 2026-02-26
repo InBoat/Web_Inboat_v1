@@ -4,7 +4,7 @@ import urllib.error
 import json
 
 supabase_url = os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
-supabase_key = os.environ.get("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+supabase_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
 
 if not supabase_url or not supabase_key:
     print("ERRO: Variaveis de ambiente do Supabase nao encontradas.")
