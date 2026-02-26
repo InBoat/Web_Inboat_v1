@@ -1,10 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Anchor, LayoutDashboard, Ship, FileText, Home, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { createClient } from "@/lib/supabase/client"
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -14,14 +15,13 @@ const navigation = [
 
 export function AdminSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
 
-  function handleLogout() {
-    try {
-      localStorage.removeItem("inboat_admin_auth")
-    } catch (err) {
-      // fallback silencioso
-    }
-    window.location.href = "/admin"
+  async function handleLogout() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push("/admin/login")
+    router.refresh()
   }
 
   return (
