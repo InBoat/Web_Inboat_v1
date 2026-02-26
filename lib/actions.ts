@@ -145,6 +145,38 @@ export async function getFaqs() {
   return data ?? []
 }
 
+// ── PÁGINAS LEGAIS ────────────────────────────────────────────
+
+export async function getPaginaLegal(slug: string) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("paginas_legais")
+    .select("*")
+    .eq("slug", slug)
+    .single()
+  if (error) return null
+  return data
+}
+
+export async function upsertPaginaLegal(slug: string, formData: FormData) {
+  const supabase = await createClient()
+  const payload = {
+    slug,
+    titulo: formData.get("titulo") as string,
+    conteudo: formData.get("conteudo") as string,
+    ultima_atualizacao: formData.get("ultima_atualizacao") as string,
+    updated_at: new Date().toISOString(),
+  }
+  const { error } = await supabase
+    .from("paginas_legais")
+    .upsert(payload, { onConflict: "slug" })
+  if (error) throw new Error(error.message)
+  revalidatePath(`/admin/conteudo`)
+  revalidatePath(`/${slug}`)
+  if (slug === "termos-de-uso") revalidatePath("/termos-de-uso")
+  if (slug === "politica-de-privacidade") revalidatePath("/politica-de-privacidade")
+}
+
 // ── AUTH ─────────────────────────────────────────────────────
 
 export async function signOut() {

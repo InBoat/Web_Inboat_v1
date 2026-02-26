@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Anchor, LayoutDashboard, Ship, FileText, Home, LogOut } from "lucide-react"
+import { Anchor, LayoutDashboard, Ship, FileText, Home, LogOut, ScrollText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
@@ -11,6 +11,7 @@ const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Embarcações", href: "/admin/embarcacoes", icon: Ship },
   { name: "Leads", href: "/admin/leads", icon: FileText },
+  { name: "Conteúdo Legal", href: "/admin/conteudo", icon: ScrollText },
 ]
 
 export function AdminSidebar() {
