@@ -1,13 +1,13 @@
 "use client"
 
 import { useState, useEffect, useTransition } from "react"
-import { FileText, Save, Eye, ChevronDown } from "lucide-react"
+import { FileText, Save, Eye, ScrollText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { getPaginaLegal, upsertPaginaLegal } from "@/lib/actions"
+import { upsertPaginaLegal } from "@/lib/actions"
 
 type PaginaLegal = {
   slug: string
@@ -22,7 +22,6 @@ const PAGINAS = [
 ]
 
 function EditorPagina({ slug, label, url }: { slug: string; label: string; url: string }) {
-  const [dados, setDados] = useState<PaginaLegal | null>(null)
   const [titulo, setTitulo] = useState("")
   const [conteudo, setConteudo] = useState("")
   const [ultimaAtualizacao, setUltimaAtualizacao] = useState("")
@@ -30,19 +29,27 @@ function EditorPagina({ slug, label, url }: { slug: string; label: string; url: 
   const [isPending, startTransition] = useTransition()
   const [sucesso, setSucesso] = useState(false)
   const [erro, setErro] = useState("")
+  const [carregando, setCarregando] = useState(true)
 
   useEffect(() => {
-    getPaginaLegal(slug).then((data) => {
-      if (data) {
-        setDados(data)
-        setTitulo(data.titulo)
-        setConteudo(data.conteudo)
-        setUltimaAtualizacao(data.ultima_atualizacao)
-      } else {
-        setTitulo(label)
-        setUltimaAtualizacao(new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" }).format(new Date()))
-      }
-    })
+    setCarregando(true)
+    fetch(`/api/paginas-legais/${slug}`)
+      .then((r) => r.json())
+      .then((data: PaginaLegal | null) => {
+        if (data) {
+          setTitulo(data.titulo)
+          setConteudo(data.conteudo)
+          setUltimaAtualizacao(data.ultima_atualizacao)
+        } else {
+          setTitulo(label)
+          setConteudo("")
+          setUltimaAtualizacao(
+            new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" }).format(new Date())
+          )
+        }
+      })
+      .catch(() => {})
+      .finally(() => setCarregando(false))
   }, [slug, label])
 
   function handleSalvar() {
@@ -57,10 +64,18 @@ function EditorPagina({ slug, label, url }: { slug: string; label: string; url: 
         await upsertPaginaLegal(slug, formData)
         setSucesso(true)
         setTimeout(() => setSucesso(false), 3000)
-      } catch (e: any) {
-        setErro(e.message ?? "Erro ao salvar.")
+      } catch (e: unknown) {
+        setErro(e instanceof Error ? e.message : "Erro ao salvar.")
       }
     })
+  }
+
+  if (carregando) {
+    return (
+      <div className="flex items-center justify-center h-64 text-muted-foreground">
+        Carregando...
+      </div>
+    )
   }
 
   return (
@@ -80,16 +95,12 @@ function EditorPagina({ slug, label, url }: { slug: string; label: string; url: 
         </div>
         <div className="flex items-center gap-3">
           {sucesso && (
-            <span className="text-sm text-green-600 font-medium">Salvo com sucesso!</span>
+            <span className="text-sm text-green-500 font-medium">Salvo com sucesso!</span>
           )}
           {erro && (
             <span className="text-sm text-destructive font-medium">{erro}</span>
           )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPreview(!preview)}
-          >
+          <Button variant="outline" size="sm" onClick={() => setPreview(!preview)}>
             <Eye className="h-4 w-4 mr-2" />
             {preview ? "Editar" : "Preview"}
           </Button>
@@ -121,18 +132,16 @@ function EditorPagina({ slug, label, url }: { slug: string; label: string; url: 
       </div>
 
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label htmlFor={`conteudo-${slug}`}>
-            Conteúdo{" "}
-            <span className="text-muted-foreground font-normal text-xs ml-1">
-              (suporta HTML: &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;strong&gt;, etc.)
-            </span>
-          </Label>
-        </div>
+        <Label htmlFor={`conteudo-${slug}`}>
+          Conteúdo{" "}
+          <span className="text-muted-foreground font-normal text-xs ml-1">
+            (suporta HTML: &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;strong&gt;, etc.)
+          </span>
+        </Label>
 
         {preview ? (
           <div
-            className="min-h-[500px] p-6 border border-border rounded-md bg-background prose prose-sm max-w-none
+            className="min-h-96 p-6 border border-border rounded-md bg-background
               [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:text-foreground [&_h2]:mt-6 [&_h2]:mb-2
               [&_p]:text-muted-foreground [&_p]:leading-relaxed [&_p]:mb-3
               [&_ul]:text-muted-foreground [&_ul]:pl-5 [&_ul]:space-y-1
@@ -146,7 +155,7 @@ function EditorPagina({ slug, label, url }: { slug: string; label: string; url: 
             onChange={(e) => setConteudo(e.target.value)}
             rows={28}
             className="font-mono text-sm resize-y"
-            placeholder="Digite o conteúdo em HTML..."
+            placeholder="Digite o conteúdo em HTML. Exemplo:&#10;<h2>1. Introdução</h2>&#10;<p>Bem-vindo aos nossos termos...</p>"
           />
         )}
       </div>
@@ -159,11 +168,11 @@ export default function ConteudoPage() {
     <div className="p-8 max-w-5xl">
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <FileText className="h-6 w-6 text-primary" />
+          <ScrollText className="h-6 w-6 text-primary" />
           <h1 className="text-2xl font-bold text-foreground">Conteúdo Legal</h1>
         </div>
         <p className="text-muted-foreground">
-          Gerencie o conteúdo dos Termos de Uso e Política de Privacidade exibidos no site.
+          Edite os Termos de Uso e Política de Privacidade exibidos no site. As alterações são publicadas imediatamente.
         </p>
       </div>
 
