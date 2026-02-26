@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Ship, FileText } from "lucide-react"
+import { Ship, FileText, ScrollText } from "lucide-react"
 import Link from "next/link"
 import { getEmbarcacoes, getLeads } from "@/lib/actions"
 
@@ -71,6 +71,12 @@ export default async function AdminDashboard() {
               <Link href="/admin/leads">
                 <FileText className="h-4 w-4 mr-2" />
                 Ver Leads
+              </Link>
+            </Button>
+            <Button variant="outline" asChild className="w-full justify-start bg-transparent">
+              <Link href="/admin/conteudo">
+                <ScrollText className="h-4 w-4 mr-2" />
+                Editar Conteúdo Legal
               </Link>
             </Button>
           </CardContent>
