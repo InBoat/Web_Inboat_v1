@@ -1,17 +1,33 @@
 import type React from "react"
-import type { Metadata } from "next"
-import { GeistSans } from "geist/font/sans"
-import { GeistMono } from "geist/font/mono"
+import type { Metadata, Viewport } from "next"
+import { Outfit, Playfair_Display } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import "./globals.css"
 
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+})
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-serif",
+  display: "swap",
+})
+
 export const metadata: Metadata = {
-  title: "InBoat - Time Share Náutico",
+  title: "InBoat — Multipropriedade Náutica de Luxo",
   description:
-    "Plataforma de compartilhamento de embarcações de luxo. Realize o sonho de ter seu próprio iate com investimento acessível.",
-  keywords: "time share, embarcações, iates, lanchas, compartilhamento náutico, marina",
-  generator: "v0.app",
+    "Plataforma de multipropriedade de embarcações de alto padrão. Realize o sonho de ter sua própria lancha com investimento acessível e gestão profissional.",
+  keywords: "multipropriedade, time share náutico, lanchas, iates, compartilhamento náutico, marina, embarcações de luxo",
+}
+
+export const viewport: Viewport = {
+  themeColor: "#1a2035",
+  initialScale: 1,
+  width: "device-width",
 }
 
 export default function RootLayout({
@@ -21,7 +37,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable} antialiased`}>
+      <body className={`font-sans antialiased ${outfit.variable} ${playfair.variable}`}>
         <Suspense fallback={null}>
           {children}
           <Analytics />

@@ -1,10 +1,10 @@
 "use client"
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState, useEffect, useTransition } from "react"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Ship, Plus, Edit, Trash2, Eye, X, ImagePlus, GripVertical, ChevronDown, ChevronUp } from "lucide-react"
+import { Ship, Plus, Edit, Trash2, Eye, X, ImagePlus } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
@@ -12,351 +12,284 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Image from "next/image"
 import Link from "next/link"
-import { boats as initialBoats, type Boat } from "@/lib/data"
+import { getEmbarcacoes, createEmbarcacao, updateEmbarcacao, deleteEmbarcacao } from "@/lib/actions"
 
-const emptyForm = {
-  name: "",
-  model: "",
-  manufacturer: "",
-  year: new Date().getFullYear(),
-  length_meters: 0,
-  capacity: 0,
-  location: "",
-  description: "",
-  total_shares: 4,
-  available_shares: 4,
-  price_per_share: 0,
-  total_price: 0,
-  monthly_maintenance_fee: 0,
-  status: "active" as "active" | "inactive",
-  engine: "",
-  fuel: "Gasolina",
-  cruising_speed: "",
-  max_speed: "",
-  fuel_capacity: "",
-  water_capacity: "",
-  motors: "",
-  images: [] as string[],
+type Embarcacao = {
+  id: string
+  nome: string
+  descricao: string | null
+  tipo: string
+  capacidade: number
+  comprimento: string | null
+  motor: string | null
+  velocidade_max: string | null
+  localizacao: string
+  preco_mensal: number
+  preco_anual: number | null
+  disponivel: boolean
+  destaque: boolean
+  imagens: string[]
+  caracteristicas: string[]
 }
 
-export default function AdminBoatsPage() {
-  const [boats, setBoats] = useState<Boat[]>(initialBoats)
+export default function AdminEmbarcacoesPage() {
+  const [embarcacoes, setEmbarcacoes] = useState<Embarcacao[]>([])
+  const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [editingBoat, setEditingBoat] = useState<Boat | null>(null)
-  const [formData, setFormData] = useState({ ...emptyForm })
-  const [expandedBoat, setExpandedBoat] = useState<string | null>(null)
+  const [editingItem, setEditingItem] = useState<Embarcacao | null>(null)
   const [imageUrl, setImageUrl] = useState("")
+  const [caracteristica, setCaracteristica] = useState("")
+  const [imagens, setImagens] = useState<string[]>([])
+  const [caracteristicas, setCaracteristicas] = useState<string[]>([])
+  const [isPending, startTransition] = useTransition()
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 }).format(value)
 
-  const handleAddImage = () => {
-    if (imageUrl.trim()) {
-      setFormData({ ...formData, images: [...formData.images, imageUrl.trim()] })
-      setImageUrl("")
+  async function loadEmbarcacoes() {
+    try {
+      const data = await getEmbarcacoes()
+      setEmbarcacoes(data as Embarcacao[])
+    } catch {
+      // silencioso
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleRemoveImage = (index: number) => {
-    setFormData({ ...formData, images: formData.images.filter((_, i) => i !== index) })
-  }
+  useEffect(() => { loadEmbarcacoes() }, [])
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    const boatData: Boat = {
-      id: editingBoat?.id || String(Date.now()),
-      name: formData.name,
-      model: formData.model,
-      manufacturer: formData.manufacturer,
-      year: formData.year,
-      length_meters: formData.length_meters,
-      capacity: formData.capacity,
-      location: formData.location,
-      description: formData.description,
-      total_shares: formData.total_shares,
-      available_shares: formData.available_shares,
-      price_per_share: formData.price_per_share,
-      total_price: formData.price_per_share * formData.total_shares,
-      monthly_maintenance_fee: formData.monthly_maintenance_fee,
-      status: formData.status,
-      specifications: {
-        engine: formData.engine,
-        fuel: formData.fuel,
-        cruising_speed: formData.cruising_speed,
-        max_speed: formData.max_speed,
-        fuel_capacity: formData.fuel_capacity,
-        water_capacity: formData.water_capacity,
-        motors: formData.motors,
-      },
-      images: formData.images.length > 0 ? formData.images : editingBoat?.images || [],
-    }
-
-    if (editingBoat) {
-      setBoats(boats.map((b) => (b.id === editingBoat.id ? boatData : b)))
-    } else {
-      setBoats([...boats, boatData])
-    }
-
-    closeDialog()
-  }
-
-  const handleEdit = (boat: Boat) => {
-    setEditingBoat(boat)
-    setFormData({
-      name: boat.name,
-      model: boat.model,
-      manufacturer: boat.manufacturer,
-      year: boat.year,
-      length_meters: boat.length_meters,
-      capacity: boat.capacity,
-      location: boat.location,
-      description: boat.description,
-      total_shares: boat.total_shares,
-      available_shares: boat.available_shares,
-      price_per_share: boat.price_per_share,
-      total_price: boat.total_price,
-      monthly_maintenance_fee: boat.monthly_maintenance_fee,
-      status: boat.status,
-      engine: boat.specifications?.engine || "",
-      fuel: boat.specifications?.fuel || "Gasolina",
-      cruising_speed: boat.specifications?.cruising_speed || "",
-      max_speed: boat.specifications?.max_speed || "",
-      fuel_capacity: boat.specifications?.fuel_capacity || "",
-      water_capacity: boat.specifications?.water_capacity || "",
-      motors: boat.specifications?.motors || "",
-      images: [...(boat.images || [])],
-    })
+  function openNew() {
+    setEditingItem(null)
+    setImagens([])
+    setCaracteristicas([])
+    setImageUrl("")
+    setCaracteristica("")
     setDialogOpen(true)
   }
 
-  const handleDelete = (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir esta embarcação? Esta ação não pode ser desfeita.")) return
-    setBoats(boats.filter((b) => b.id !== id))
-  }
-
-  const handleDuplicate = (boat: Boat) => {
-    const duplicated: Boat = {
-      ...boat,
-      id: String(Date.now()),
-      name: `${boat.name} (Cópia)`,
-      available_shares: boat.total_shares,
-    }
-    setBoats([...boats, duplicated])
-  }
-
-  const closeDialog = () => {
-    setDialogOpen(false)
-    setEditingBoat(null)
-    setFormData({ ...emptyForm })
+  function openEdit(item: Embarcacao) {
+    setEditingItem(item)
+    setImagens([...item.imagens])
+    setCaracteristicas([...item.caracteristicas])
     setImageUrl("")
+    setCaracteristica("")
+    setDialogOpen(true)
+  }
+
+  function closeDialog() {
+    setDialogOpen(false)
+    setEditingItem(null)
+    setImagens([])
+    setCaracteristicas([])
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const form = e.currentTarget
+    const fd = new FormData(form)
+    fd.set("imagens", imagens.join("\n"))
+    fd.set("caracteristicas", caracteristicas.join("\n"))
+
+    startTransition(async () => {
+      try {
+        if (editingItem) {
+          await updateEmbarcacao(editingItem.id, fd)
+        } else {
+          await createEmbarcacao(fd)
+        }
+        closeDialog()
+        await loadEmbarcacoes()
+      } catch (err) {
+        alert("Erro ao salvar embarcação. Tente novamente.")
+      }
+    })
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Tem certeza que deseja excluir esta embarcação? Esta ação não pode ser desfeita.")) return
+    startTransition(async () => {
+      try {
+        await deleteEmbarcacao(id)
+        await loadEmbarcacoes()
+      } catch {
+        alert("Erro ao excluir embarcação.")
+      }
+    })
   }
 
   return (
     <div className="p-6 lg:p-8">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-1">Embarcações</h1>
           <p className="text-muted-foreground">
-            {boats.length} embarcação{boats.length !== 1 ? "ões" : ""} cadastrada{boats.length !== 1 ? "s" : ""}
+            {embarcacoes.length} embarcação{embarcacoes.length !== 1 ? "ões" : ""} cadastrada{embarcacoes.length !== 1 ? "s" : ""}
           </p>
         </div>
 
         <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) closeDialog(); else setDialogOpen(true) }}>
           <DialogTrigger asChild>
-            <Button size="lg">
+            <Button size="lg" onClick={openNew}>
               <Plus className="h-4 w-4 mr-2" />
               Nova Embarcação
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-xl">
-                {editingBoat ? `Editar: ${editingBoat.name}` : "Cadastrar Nova Embarcação"}
+                {editingItem ? `Editar: ${editingItem.nome}` : "Cadastrar Nova Embarcação"}
               </DialogTitle>
             </DialogHeader>
 
-            <form onSubmit={handleSubmit} className="space-y-8 mt-4">
-              {/* Seção: Identificação */}
+            <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+              {/* Identificação */}
               <div>
-                <h3 className="text-sm font-semibold text-primary uppercase tracking-wider mb-4 border-b border-border pb-2">
-                  Identificação
-                </h3>
+                <h3 className="text-xs font-semibold text-primary uppercase tracking-wider mb-3 border-b border-border pb-2">Identificação</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nome da Embarcação *</Label>
-                    <Input id="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Ex: Triton 380 HT" required />
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="nome">Nome *</Label>
+                    <Input id="nome" name="nome" defaultValue={editingItem?.nome} placeholder="Ex: Triton 380 HT" required />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="model">Modelo *</Label>
-                    <Input id="model" value={formData.model} onChange={(e) => setFormData({ ...formData, model: e.target.value })} placeholder="Ex: 380 HT" required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="manufacturer">Fabricante *</Label>
-                    <Input id="manufacturer" value={formData.manufacturer} onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })} placeholder="Ex: Triton" required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="year">Ano *</Label>
-                    <Input id="year" type="number" value={formData.year} onChange={(e) => setFormData({ ...formData, year: Number.parseInt(e.target.value) })} required />
-                  </div>
-                </div>
-              </div>
-
-              {/* Seção: Características */}
-              <div>
-                <h3 className="text-sm font-semibold text-primary uppercase tracking-wider mb-4 border-b border-border pb-2">
-                  Características
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="length">Comprimento (metros) *</Label>
-                    <Input id="length" type="number" step="0.1" value={formData.length_meters || ""} onChange={(e) => setFormData({ ...formData, length_meters: Number.parseFloat(e.target.value) || 0 })} placeholder="Ex: 11.6" required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="capacity">Capacidade (pessoas) *</Label>
-                    <Input id="capacity" type="number" value={formData.capacity || ""} onChange={(e) => setFormData({ ...formData, capacity: Number.parseInt(e.target.value) || 0 })} placeholder="Ex: 12" required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="status">Status</Label>
-                    <Select value={formData.status} onValueChange={(value: "active" | "inactive") => setFormData({ ...formData, status: value })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                    <Label htmlFor="tipo">Tipo *</Label>
+                    <Select name="tipo" defaultValue={editingItem?.tipo ?? "lancha"}>
+                      <SelectTrigger id="tipo"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="active">Ativa</SelectItem>
-                        <SelectItem value="inactive">Inativa</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="mt-4 space-y-2">
-                  <Label htmlFor="location">Marina / Localização *</Label>
-                  <Input id="location" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} placeholder="Ex: Marina da Glória, Rio de Janeiro" required />
-                </div>
-                <div className="mt-4 space-y-2">
-                  <Label htmlFor="description">Descrição *</Label>
-                  <Textarea id="description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Descreva as características, diferenciais e experiência que a embarcação proporciona..." rows={4} required />
-                </div>
-              </div>
-
-              {/* Seção: Motorização */}
-              <div>
-                <h3 className="text-sm font-semibold text-primary uppercase tracking-wider mb-4 border-b border-border pb-2">
-                  Motorização e Performance
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="engine">Motor(es)</Label>
-                    <Input id="engine" value={formData.engine} onChange={(e) => setFormData({ ...formData, engine: e.target.value })} placeholder="Ex: 2x Mercury Verado 300HP" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="motors">Quantidade de Motores</Label>
-                    <Input id="motors" value={formData.motors} onChange={(e) => setFormData({ ...formData, motors: e.target.value })} placeholder="Ex: 2 motores" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="fuel">Combustível</Label>
-                    <Select value={formData.fuel} onValueChange={(value) => setFormData({ ...formData, fuel: value })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Gasolina">Gasolina</SelectItem>
-                        <SelectItem value="Diesel">Diesel</SelectItem>
+                        <SelectItem value="lancha">Lancha</SelectItem>
+                        <SelectItem value="iate">Iate</SelectItem>
+                        <SelectItem value="veleiro">Veleiro</SelectItem>
+                        <SelectItem value="catamaras">Catamarã</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="fuel_capacity">Capacidade de Combustível</Label>
-                    <Input id="fuel_capacity" value={formData.fuel_capacity} onChange={(e) => setFormData({ ...formData, fuel_capacity: e.target.value })} placeholder="Ex: 600 litros" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="cruising_speed">Velocidade de Cruzeiro</Label>
-                    <Input id="cruising_speed" value={formData.cruising_speed} onChange={(e) => setFormData({ ...formData, cruising_speed: e.target.value })} placeholder="Ex: 28 nós" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="max_speed">Velocidade Máxima</Label>
-                    <Input id="max_speed" value={formData.max_speed} onChange={(e) => setFormData({ ...formData, max_speed: e.target.value })} placeholder="Ex: 45 nós" />
+                    <Label htmlFor="localizacao">Localização *</Label>
+                    <Input id="localizacao" name="localizacao" defaultValue={editingItem?.localizacao} placeholder="Ex: Angra dos Reis, RJ" required />
                   </div>
                   <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="water_capacity">Capacidade de Água</Label>
-                    <Input id="water_capacity" value={formData.water_capacity} onChange={(e) => setFormData({ ...formData, water_capacity: e.target.value })} placeholder="Ex: 100 litros" />
+                    <Label htmlFor="descricao">Descrição</Label>
+                    <Textarea id="descricao" name="descricao" defaultValue={editingItem?.descricao ?? ""} placeholder="Descreva a embarcação..." rows={3} />
                   </div>
                 </div>
               </div>
 
-              {/* Seção: Cotas e Valores */}
+              {/* Especificações */}
               <div>
-                <h3 className="text-sm font-semibold text-primary uppercase tracking-wider mb-4 border-b border-border pb-2">
-                  Cotas e Valores
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <h3 className="text-xs font-semibold text-primary uppercase tracking-wider mb-3 border-b border-border pb-2">Especificações</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="total_shares">Total de Cotas *</Label>
-                    <Input id="total_shares" type="number" value={formData.total_shares || ""} onChange={(e) => setFormData({ ...formData, total_shares: Number.parseInt(e.target.value) || 0 })} required />
+                    <Label htmlFor="capacidade">Capacidade (pessoas) *</Label>
+                    <Input id="capacidade" name="capacidade" type="number" defaultValue={editingItem?.capacidade ?? 10} required />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="available_shares">Cotas Disponíveis *</Label>
-                    <Input id="available_shares" type="number" value={formData.available_shares || ""} onChange={(e) => setFormData({ ...formData, available_shares: Number.parseInt(e.target.value) || 0 })} required />
+                    <Label htmlFor="comprimento">Comprimento</Label>
+                    <Input id="comprimento" name="comprimento" defaultValue={editingItem?.comprimento ?? ""} placeholder="Ex: 11,6m" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="price_per_share">Valor por Cota (R$) *</Label>
-                    <Input id="price_per_share" type="number" value={formData.price_per_share || ""} onChange={(e) => setFormData({ ...formData, price_per_share: Number.parseFloat(e.target.value) || 0 })} placeholder="Ex: 275000" required />
+                    <Label htmlFor="velocidade_max">Velocidade Máxima</Label>
+                    <Input id="velocidade_max" name="velocidade_max" defaultValue={editingItem?.velocidade_max ?? ""} placeholder="Ex: 45 nós" />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="maintenance">Taxa Mensal de Manutenção (R$) *</Label>
-                    <Input id="maintenance" type="number" value={formData.monthly_maintenance_fee || ""} onChange={(e) => setFormData({ ...formData, monthly_maintenance_fee: Number.parseFloat(e.target.value) || 0 })} placeholder="Ex: 2500" required />
+                  <div className="space-y-2 sm:col-span-3">
+                    <Label htmlFor="motor">Motor(es)</Label>
+                    <Input id="motor" name="motor" defaultValue={editingItem?.motor ?? ""} placeholder="Ex: 2x Mercury Verado 300HP" />
                   </div>
                 </div>
-                {formData.price_per_share > 0 && formData.total_shares > 0 && (
-                  <div className="mt-4 p-4 bg-primary/5 border border-primary/20 rounded-lg">
-                    <p className="text-sm text-muted-foreground">
-                      Valor total da embarcação: <span className="font-bold text-foreground">{formatCurrency(formData.price_per_share * formData.total_shares)}</span>
-                    </p>
+              </div>
+
+              {/* Valores */}
+              <div>
+                <h3 className="text-xs font-semibold text-primary uppercase tracking-wider mb-3 border-b border-border pb-2">Valores</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="preco_mensal">Preço Mensal (R$) *</Label>
+                    <Input id="preco_mensal" name="preco_mensal" type="number" defaultValue={editingItem?.preco_mensal} placeholder="Ex: 2500" required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="preco_anual">Preço Anual (R$)</Label>
+                    <Input id="preco_anual" name="preco_anual" type="number" defaultValue={editingItem?.preco_anual ?? ""} placeholder="Ex: 25000" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Status */}
+              <div>
+                <h3 className="text-xs font-semibold text-primary uppercase tracking-wider mb-3 border-b border-border pb-2">Configurações</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="disponivel">Disponível</Label>
+                    <Select name="disponivel" defaultValue={editingItem ? String(editingItem.disponivel) : "true"}>
+                      <SelectTrigger id="disponivel"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="true">Sim</SelectItem>
+                        <SelectItem value="false">Não</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="destaque">Destaque na Home</Label>
+                    <Select name="destaque" defaultValue={editingItem ? String(editingItem.destaque) : "false"}>
+                      <SelectTrigger id="destaque"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="true">Sim</SelectItem>
+                        <SelectItem value="false">Não</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Imagens */}
+              <div>
+                <h3 className="text-xs font-semibold text-primary uppercase tracking-wider mb-3 border-b border-border pb-2">Imagens</h3>
+                <div className="flex gap-2 mb-3">
+                  <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="URL da imagem" className="flex-1" onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); if (imageUrl.trim()) { setImagens([...imagens, imageUrl.trim()]); setImageUrl("") }}}} />
+                  <Button type="button" variant="outline" className="bg-transparent" onClick={() => { if (imageUrl.trim()) { setImagens([...imagens, imageUrl.trim()]); setImageUrl("") }}}>
+                    <ImagePlus className="h-4 w-4" />
+                  </Button>
+                </div>
+                {imagens.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {imagens.map((img, i) => (
+                      <div key={i} className="relative group rounded-lg overflow-hidden border border-border bg-muted aspect-video">
+                        <Image src={img} alt={`Imagem ${i + 1}`} fill className="object-cover" />
+                        {i === 0 && <span className="absolute top-1 left-1 text-[10px] font-medium bg-primary text-primary-foreground px-1.5 py-0.5 rounded">Capa</span>}
+                        <button type="button" onClick={() => setImagens(imagens.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
 
-              {/* Seção: Imagens */}
+              {/* Características */}
               <div>
-                <h3 className="text-sm font-semibold text-primary uppercase tracking-wider mb-4 border-b border-border pb-2">
-                  Imagens
-                </h3>
-                <div className="space-y-4">
-                  <div className="flex gap-2">
-                    <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="Cole a URL da imagem (ex: /boats/minha-lancha.jpg)" className="flex-1" onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddImage() }}} />
-                    <Button type="button" variant="outline" onClick={handleAddImage} className="bg-transparent">
-                      <ImagePlus className="h-4 w-4 mr-2" />
-                      Adicionar
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Adicione URLs de imagens da embarcação. A primeira imagem será usada como capa.
-                  </p>
-                  {formData.images.length > 0 && (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      {formData.images.map((img, index) => (
-                        <div key={`${img}-${index}`} className="relative group rounded-lg overflow-hidden border border-border bg-muted aspect-video">
-                          <Image src={img} alt={`Imagem ${index + 1}`} fill className="object-cover" />
-                          {index === 0 && (
-                            <span className="absolute top-1 left-1 text-[10px] font-medium bg-primary text-primary-foreground px-1.5 py-0.5 rounded">Capa</span>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveImage(index)}
-                            className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                <h3 className="text-xs font-semibold text-primary uppercase tracking-wider mb-3 border-b border-border pb-2">Características</h3>
+                <div className="flex gap-2 mb-3">
+                  <Input value={caracteristica} onChange={(e) => setCaracteristica(e.target.value)} placeholder="Ex: Ar-condicionado, GPS..." className="flex-1" onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); if (caracteristica.trim()) { setCaracteristicas([...caracteristicas, caracteristica.trim()]); setCaracteristica("") }}}} />
+                  <Button type="button" variant="outline" className="bg-transparent" onClick={() => { if (caracteristica.trim()) { setCaracteristicas([...caracteristicas, caracteristica.trim()]); setCaracteristica("") }}}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
                 </div>
+                {caracteristicas.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {caracteristicas.map((c, i) => (
+                      <Badge key={i} variant="secondary" className="gap-1">
+                        {c}
+                        <button type="button" onClick={() => setCaracteristicas(caracteristicas.filter((_, idx) => idx !== i))} className="ml-1 hover:text-destructive">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Botões */}
               <div className="flex gap-3 pt-4 border-t border-border">
-                <Button type="button" variant="outline" className="flex-1 bg-transparent" onClick={closeDialog}>
-                  Cancelar
-                </Button>
-                <Button type="submit" className="flex-1">
-                  {editingBoat ? "Salvar Alterações" : "Cadastrar Embarcação"}
+                <Button type="button" variant="outline" className="flex-1 bg-transparent" onClick={closeDialog}>Cancelar</Button>
+                <Button type="submit" className="flex-1" disabled={isPending}>
+                  {isPending ? "Salvando..." : editingItem ? "Salvar Alterações" : "Cadastrar Embarcação"}
                 </Button>
               </div>
             </form>
@@ -364,134 +297,59 @@ export default function AdminBoatsPage() {
         </Dialog>
       </div>
 
-      {/* Lista de Embarcações */}
-      {boats.length === 0 ? (
+      {loading ? (
+        <div className="text-center py-20 text-muted-foreground">Carregando embarcações...</div>
+      ) : embarcacoes.length === 0 ? (
         <Card>
           <CardContent className="py-16 text-center">
             <Ship className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-30" />
             <h3 className="text-lg font-semibold text-foreground mb-2">Nenhuma embarcação cadastrada</h3>
             <p className="text-muted-foreground mb-6">Comece adicionando sua primeira embarcação ao catálogo.</p>
-            <Button onClick={() => setDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Cadastrar Primeira Embarcação
-            </Button>
+            <Button onClick={openNew}><Plus className="h-4 w-4 mr-2" />Cadastrar Primeira Embarcação</Button>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-4">
-          {boats.map((boat) => {
-            const isExpanded = expandedBoat === boat.id
-            return (
-              <Card key={boat.id} className="overflow-hidden">
-                {/* Linha principal */}
-                <div className="flex items-center gap-4 p-4">
-                  <div className="relative h-20 w-32 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                    <Image
-                      src={boat.images?.[0] || "/placeholder.svg?height=80&width=128"}
-                      alt={boat.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-foreground truncate">{boat.name}</h3>
-                      <Badge variant={boat.status === "active" ? "default" : "secondary"} className="flex-shrink-0">
-                        {boat.status === "active" ? "Ativa" : "Inativa"}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{boat.manufacturer} {boat.model} - {boat.year}</p>
-                    <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
-                      <span>{boat.length_meters}m</span>
-                      <span>{boat.capacity} pessoas</span>
-                      <span>{boat.location}</span>
-                    </div>
-                  </div>
-
-                  <div className="hidden md:flex flex-col items-end gap-1 flex-shrink-0">
-                    <p className="font-semibold text-foreground">{formatCurrency(boat.price_per_share)}/cota</p>
-                    <p className="text-sm text-primary font-medium">{boat.available_shares}/{boat.total_shares} cotas disponíveis</p>
-                  </div>
-
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/embarcacoes/${boat.id}`} target="_blank"><Eye className="h-4 w-4" /></Link>
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleEdit(boat)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(boat.id)} className="text-destructive hover:text-destructive">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => setExpandedBoat(isExpanded ? null : boat.id)}>
-                      {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </Button>
-                  </div>
+          {embarcacoes.map((item) => (
+            <Card key={item.id} className="overflow-hidden">
+              <div className="flex items-center gap-4 p-4">
+                <div className="relative h-20 w-32 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                  <Image
+                    src={item.imagens?.[0] || "/placeholder.svg?height=80&width=128"}
+                    alt={item.nome}
+                    fill
+                    className="object-cover"
+                  />
                 </div>
 
-                {/* Detalhes expandidos */}
-                {isExpanded && (
-                  <div className="border-t border-border bg-muted/30 p-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      {/* Imagens */}
-                      <div>
-                        <h4 className="text-sm font-semibold text-foreground mb-3">Imagens ({boat.images?.length || 0})</h4>
-                        <div className="grid grid-cols-2 gap-2">
-                          {(boat.images || []).map((img, i) => (
-                            <div key={`${img}-${i}`} className="relative aspect-video rounded-md overflow-hidden bg-muted border border-border">
-                              <Image src={img} alt={`${boat.name} ${i + 1}`} fill className="object-cover" />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Especificações */}
-                      <div>
-                        <h4 className="text-sm font-semibold text-foreground mb-3">Especificações</h4>
-                        <div className="space-y-2 text-sm">
-                          {boat.specifications?.engine && <div className="flex justify-between"><span className="text-muted-foreground">Motor</span><span className="text-foreground font-medium">{boat.specifications.engine}</span></div>}
-                          {boat.specifications?.motors && <div className="flex justify-between"><span className="text-muted-foreground">Motores</span><span className="text-foreground font-medium">{boat.specifications.motors}</span></div>}
-                          {boat.specifications?.fuel && <div className="flex justify-between"><span className="text-muted-foreground">Combustível</span><span className="text-foreground font-medium">{boat.specifications.fuel}</span></div>}
-                          {boat.specifications?.cruising_speed && <div className="flex justify-between"><span className="text-muted-foreground">Vel. Cruzeiro</span><span className="text-foreground font-medium">{boat.specifications.cruising_speed}</span></div>}
-                          {boat.specifications?.max_speed && <div className="flex justify-between"><span className="text-muted-foreground">Vel. Máxima</span><span className="text-foreground font-medium">{boat.specifications.max_speed}</span></div>}
-                          {boat.specifications?.fuel_capacity && <div className="flex justify-between"><span className="text-muted-foreground">Combustível</span><span className="text-foreground font-medium">{boat.specifications.fuel_capacity}</span></div>}
-                          {boat.specifications?.water_capacity && <div className="flex justify-between"><span className="text-muted-foreground">Água</span><span className="text-foreground font-medium">{boat.specifications.water_capacity}</span></div>}
-                        </div>
-                      </div>
-
-                      {/* Valores */}
-                      <div>
-                        <h4 className="text-sm font-semibold text-foreground mb-3">Valores e Cotas</h4>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between"><span className="text-muted-foreground">Valor total</span><span className="text-foreground font-medium">{formatCurrency(boat.total_price)}</span></div>
-                          <div className="flex justify-between"><span className="text-muted-foreground">Valor por cota</span><span className="text-foreground font-medium">{formatCurrency(boat.price_per_share)}</span></div>
-                          <div className="flex justify-between"><span className="text-muted-foreground">Taxa mensal</span><span className="text-foreground font-medium">{formatCurrency(boat.monthly_maintenance_fee)}</span></div>
-                          <div className="flex justify-between"><span className="text-muted-foreground">Total de cotas</span><span className="text-foreground font-medium">{boat.total_shares}</span></div>
-                          <div className="flex justify-between"><span className="text-muted-foreground">Disponíveis</span><span className="text-primary font-medium">{boat.available_shares}</span></div>
-                          <div className="flex justify-between"><span className="text-muted-foreground">Vendidas</span><span className="text-foreground font-medium">{boat.total_shares - boat.available_shares}</span></div>
-                        </div>
-                        <div className="mt-4 flex gap-2">
-                          <Button size="sm" variant="outline" className="flex-1 bg-transparent" onClick={() => handleEdit(boat)}>
-                            <Edit className="h-3 w-3 mr-1" /> Editar
-                          </Button>
-                          <Button size="sm" variant="outline" className="flex-1 bg-transparent" onClick={() => handleDuplicate(boat)}>
-                            <Plus className="h-3 w-3 mr-1" /> Duplicar
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Descrição */}
-                    <div className="mt-4 pt-4 border-t border-border">
-                      <h4 className="text-sm font-semibold text-foreground mb-2">Descrição</h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{boat.description}</p>
-                    </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <h3 className="font-semibold text-foreground truncate">{item.nome}</h3>
+                    <Badge variant={item.disponivel ? "default" : "secondary"} className="text-xs shrink-0">
+                      {item.disponivel ? "Disponível" : "Indisponível"}
+                    </Badge>
+                    {item.destaque && <Badge className="text-xs shrink-0 bg-amber-500/20 text-amber-600 border-amber-500/30">Destaque</Badge>}
                   </div>
-                )}
-              </Card>
-            )
-          })}
+                  <p className="text-sm text-muted-foreground">{item.localizacao} · {item.capacidade} pessoas · {item.tipo}</p>
+                  <p className="text-sm font-semibold text-primary mt-1">{formatCurrency(item.preco_mensal)}/mês</p>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button variant="ghost" size="icon" asChild>
+                    <Link href={`/embarcacoes/${item.id}`} target="_blank" aria-label="Ver no site">
+                      <Eye className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => openEdit(item)} aria-label="Editar">
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDelete(item.id)} aria-label="Excluir" disabled={isPending}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          ))}
         </div>
       )}
     </div>

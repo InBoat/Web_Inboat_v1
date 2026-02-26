@@ -1,69 +1,95 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { FileText, Mail, Phone, Trash2, Calendar } from "lucide-react"
-import { type Lead } from "@/lib/data"
+import { FileText, Mail, Phone, Trash2, Calendar, RefreshCw } from "lucide-react"
+import { deleteLead, updateLeadStatus } from "@/lib/actions"
+import { createClient } from "@/lib/supabase/client"
 
-// Mock leads for demonstration
-const mockLeads: Lead[] = [
-  {
-    id: "1",
-    name: "Carlos Eduardo Silva",
-    email: "carlos.silva@email.com",
-    phone: "(11) 98765-4321",
-    message: "Tenho interesse na Triton 380 HT. Gostaria de mais informações sobre financiamento.",
-    boat_interest: "Triton 380 HT",
-    created_at: "2026-01-28T10:30:00Z"
-  },
-  {
-    id: "2",
-    name: "Marina Rodrigues",
-    email: "marina.rodrigues@email.com",
-    phone: "(21) 99876-5432",
-    message: "Quero saber como funciona o sistema de cotas e se posso visitar as embarcações.",
-    boat_interest: undefined,
-    created_at: "2026-01-27T15:45:00Z"
-  },
-  {
-    id: "3",
-    name: "Roberto Mendes",
-    email: "roberto.mendes@email.com",
-    phone: "(13) 98765-1234",
-    message: "Interesse em pesca esportiva. A Fishing 39 Raptor ainda tem cotas disponíveis?",
-    boat_interest: "Fishing 39 Raptor",
-    created_at: "2026-01-26T09:15:00Z"
-  }
-]
+type Lead = {
+  id: string
+  nome: string
+  email: string
+  telefone?: string
+  mensagem?: string
+  embarcacao_nome?: string
+  status: string
+  created_at: string
+}
 
 export default function AdminLeadsPage() {
-  const [leads, setLeads] = useState<Lead[]>(mockLeads)
+  const [leads, setLeads] = useState<Lead[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const handleDelete = (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir este lead?")) return
-    setLeads(leads.filter(lead => lead.id !== id))
+  async function fetchLeads() {
+    setLoading(true)
+    const supabase = createClient()
+    const { data } = await supabase
+      .from("leads")
+      .select("*")
+      .order("created_at", { ascending: false })
+    setLeads(data ?? [])
+    setLoading(false)
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("pt-BR", {
+  useEffect(() => {
+    fetchLeads()
+  }, [])
+
+  async function handleDelete(id: string) {
+    if (!confirm("Tem certeza que deseja excluir este lead?")) return
+    await deleteLead(id)
+    setLeads(leads.filter((l) => l.id !== id))
+  }
+
+  async function handleStatusChange(id: string, status: string) {
+    await updateLeadStatus(id, status)
+    setLeads(leads.map((l) => (l.id === id ? { ...l, status } : l)))
+  }
+
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString("pt-BR", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
       hour: "2-digit",
-      minute: "2-digit"
+      minute: "2-digit",
     })
+
+  const statusColors: Record<string, string> = {
+    novo: "bg-primary/10 text-primary",
+    em_contato: "bg-yellow-500/10 text-yellow-600",
+    convertido: "bg-green-500/10 text-green-600",
+    descartado: "bg-muted text-muted-foreground",
+  }
+
+  const statusLabels: Record<string, string> = {
+    novo: "Novo",
+    em_contato: "Em Contato",
+    convertido: "Convertido",
+    descartado: "Descartado",
   }
 
   return (
     <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Leads Recebidos</h1>
-        <p className="text-muted-foreground">Gerencie os contatos recebidos pelo formulário do site</p>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Leads Recebidos</h1>
+          <p className="text-muted-foreground">Gerencie os contatos recebidos pelo formulário do site</p>
+        </div>
+        <Button variant="outline" size="sm" onClick={fetchLeads} className="bg-transparent">
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Atualizar
+        </Button>
       </div>
 
-      {leads.length === 0 ? (
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="h-8 w-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        </div>
+      ) : leads.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
@@ -77,28 +103,41 @@ export default function AdminLeadsPage() {
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div>
-                    <CardTitle className="text-lg">{lead.name}</CardTitle>
-                    <div className="flex items-center gap-4 mt-1">
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <CardTitle className="text-lg text-foreground">{lead.nome}</CardTitle>
+                    <div className="flex flex-wrap items-center gap-4 mt-1">
+                      <a
+                        href={`mailto:${lead.email}`}
+                        className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors"
+                      >
                         <Mail className="h-3.5 w-3.5" />
-                        <a href={`mailto:${lead.email}`} className="hover:text-primary">
-                          {lead.email}
+                        {lead.email}
+                      </a>
+                      {lead.telefone && (
+                        <a
+                          href={`tel:${lead.telefone}`}
+                          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          <Phone className="h-3.5 w-3.5" />
+                          {lead.telefone}
                         </a>
-                      </div>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Phone className="h-3.5 w-3.5" />
-                        <a href={`tel:${lead.phone}`} className="hover:text-primary">
-                          {lead.phone}
-                        </a>
-                      </div>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {lead.boat_interest && (
-                      <Badge variant="secondary">{lead.boat_interest}</Badge>
+                    {lead.embarcacao_nome && (
+                      <Badge variant="secondary">{lead.embarcacao_nome}</Badge>
                     )}
-                    <Button 
-                      variant="ghost" 
+                    <select
+                      value={lead.status}
+                      onChange={(e) => handleStatusChange(lead.id, e.target.value)}
+                      className={`text-xs px-2 py-1 rounded font-medium border-0 cursor-pointer ${statusColors[lead.status] ?? "bg-muted text-muted-foreground"}`}
+                    >
+                      {Object.entries(statusLabels).map(([value, label]) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                    </select>
+                    <Button
+                      variant="ghost"
                       size="icon"
                       className="text-muted-foreground hover:text-destructive"
                       onClick={() => handleDelete(lead.id)}
@@ -108,13 +147,15 @@ export default function AdminLeadsPage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground mb-3">{lead.message}</p>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Calendar className="h-3 w-3" />
-                  <span>{formatDate(lead.created_at)}</span>
-                </div>
-              </CardContent>
+              {lead.mensagem && (
+                <CardContent>
+                  <p className="text-muted-foreground mb-3">{lead.mensagem}</p>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Calendar className="h-3 w-3" />
+                    <span>{formatDate(lead.created_at)}</span>
+                  </div>
+                </CardContent>
+              )}
             </Card>
           ))}
         </div>
