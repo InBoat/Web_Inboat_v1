@@ -1,11 +1,41 @@
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Mail, Phone, MapPin } from "lucide-react"
+import { Mail, Phone, MapPin, MessageCircle } from "lucide-react"
+
+const contactInfo = [
+  {
+    Icon: Mail,
+    title: "Email",
+    content: "contato@inboat.com.br",
+    href: "mailto:contato@inboat.com.br",
+    detail: "Resposta em até 24 horas",
+  },
+  {
+    Icon: Phone,
+    title: "Telefone",
+    content: "+55 11 4000-4000",
+    href: "tel:+551140004000",
+    detail: "Seg–Sex: 9h às 18h",
+  },
+  {
+    Icon: MessageCircle,
+    title: "WhatsApp",
+    content: "+55 11 99999-9999",
+    href: "https://wa.me/5511999999999",
+    detail: "Atendimento imediato",
+  },
+  {
+    Icon: MapPin,
+    title: "Escritório",
+    content: "São Paulo, SP — Brasil",
+    href: null,
+    detail: "Av. Paulista, 1000",
+  },
+]
 
 export default function ContactPage() {
   return (
@@ -13,121 +43,122 @@ export default function ContactPage() {
       <Header />
 
       <main className="flex-1">
-        <section className="bg-gradient-to-br from-primary/10 via-background to-accent/20 py-16">
+        {/* Hero */}
+        <section className="py-20 bg-card border-b border-border">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 text-balance">Entre em Contato</h1>
-              <p className="text-lg text-muted-foreground leading-relaxed text-pretty">
-                Nossa equipe está pronta para responder suas dúvidas e ajudá-lo a realizar o sonho de ter sua própria
-                embarcação.
+            <div className="max-w-2xl">
+              <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-4">Contato</p>
+              <h1 className="font-serif text-5xl md:text-6xl font-bold text-foreground mb-4 text-balance leading-tight">
+                Entre em Contato
+              </h1>
+              <p className="text-muted-foreground leading-relaxed text-pretty text-base md:text-lg">
+                Nossa equipe está pronta para responder suas dúvidas e ajudá-lo a realizar o sonho de ter sua própria embarcação.
               </p>
             </div>
           </div>
         </section>
 
-        <section className="py-12">
+        <section className="py-16 bg-background">
           <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 max-w-6xl mx-auto">
+
+              {/* Form */}
               <div className="lg:col-span-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Envie sua Mensagem</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <form className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="name">Nome Completo</Label>
-                          <Input id="name" placeholder="Seu nome" required />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="email">Email</Label>
-                          <Input id="email" type="email" placeholder="seu@email.com" required />
-                        </div>
-                      </div>
-
+                <div className="bg-card border border-border rounded-lg p-8">
+                  <h2 className="font-serif text-2xl font-bold text-foreground mb-6">Envie sua Mensagem</h2>
+                  <form className="space-y-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div className="space-y-2">
-                        <Label htmlFor="phone">Telefone</Label>
-                        <Input id="phone" type="tel" placeholder="+55 11 98765-4321" />
+                        <Label htmlFor="name" className="text-sm text-foreground">Nome Completo</Label>
+                        <Input
+                          id="name"
+                          placeholder="Seu nome"
+                          className="bg-background border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
+                          required
+                        />
                       </div>
-
                       <div className="space-y-2">
-                        <Label htmlFor="subject">Assunto</Label>
-                        <Input id="subject" placeholder="Como podemos ajudar?" required />
+                        <Label htmlFor="email" className="text-sm text-foreground">Email</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="seu@email.com"
+                          className="bg-background border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
+                          required
+                        />
                       </div>
+                    </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="message">Mensagem</Label>
-                        <Textarea id="message" placeholder="Conte-nos mais sobre seu interesse..." rows={6} required />
-                      </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="text-sm text-foreground">Telefone</Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="+55 11 98765-4321"
+                        className="bg-background border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
+                      />
+                    </div>
 
-                      <Button type="submit" className="w-full">
-                        Enviar Mensagem
-                      </Button>
-                    </form>
-                  </CardContent>
-                </Card>
+                    <div className="space-y-2">
+                      <Label htmlFor="subject" className="text-sm text-foreground">Assunto</Label>
+                      <Input
+                        id="subject"
+                        placeholder="Como podemos ajudar?"
+                        className="bg-background border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="message" className="text-sm text-foreground">Mensagem</Label>
+                      <Textarea
+                        id="message"
+                        placeholder="Conte-nos mais sobre seu interesse..."
+                        rows={6}
+                        className="bg-background border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-primary resize-none"
+                        required
+                      />
+                    </div>
+
+                    <Button
+                      type="submit"
+                      size="lg"
+                      className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
+                    >
+                      Enviar Mensagem
+                    </Button>
+                  </form>
+                </div>
               </div>
 
-              <div className="space-y-6">
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-4">
-                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <Mail className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-foreground mb-1">Email</h3>
+              {/* Contact Info */}
+              <div className="space-y-4">
+                {contactInfo.map(({ Icon, title, content, href, detail }) => (
+                  <div
+                    key={title}
+                    className="bg-card border border-border rounded-lg p-5 flex items-start gap-4"
+                  >
+                    <div className="h-10 w-10 rounded-full border border-primary/30 bg-primary/10 flex items-center justify-center shrink-0">
+                      <Icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-0.5">{title}</p>
+                      {href ? (
                         <a
-                          href="mailto:contato@inboat.com"
-                          className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                          href={href}
+                          target={href.startsWith("http") ? "_blank" : undefined}
+                          rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
+                          className="font-medium text-foreground hover:text-primary transition-colors text-sm"
                         >
-                          contato@inboat.com
+                          {content}
                         </a>
-                      </div>
+                      ) : (
+                        <p className="font-medium text-foreground text-sm">{content}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-0.5">{detail}</p>
                     </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-4">
-                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <Phone className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-foreground mb-1">Telefone</h3>
-                        <a
-                          href="tel:+551140004000"
-                          className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                        >
-                          +55 11 4000-4000
-                        </a>
-                        <p className="text-xs text-muted-foreground mt-1">Seg-Sex: 9h às 18h</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-4">
-                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <MapPin className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-foreground mb-1">Escritório</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Av. Paulista, 1000
-                          <br />
-                          São Paulo, SP
-                          <br />
-                          CEP 01310-100
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

@@ -20,141 +20,125 @@ function TikTokIcon({ className }: { className?: string }) {
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-muted/30">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer className="border-t border-border bg-card">
+      <div className="container mx-auto px-4 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* Brand */}
-          <div className="space-y-4">
-            <Link href="/" className="flex items-center gap-2 font-bold text-xl text-primary">
-              <Anchor className="h-7 w-7" />
-              <span>InBoat</span>
+          <div className="space-y-5 md:col-span-1">
+            <Link href="/" className="flex items-center gap-2.5 group w-fit">
+              <div className="h-8 w-8 rounded-full border border-primary/50 flex items-center justify-center group-hover:border-primary transition-colors">
+                <Anchor className="h-4 w-4 text-primary" />
+              </div>
+              <span className="font-serif text-xl font-bold text-foreground tracking-wide">
+                In<span className="text-primary">Boat</span>
+              </span>
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Multipropriedade de embarcações de alto padrão com gestão profissional completa. Navegue com economia e tranquilidade.
             </p>
+            <div className="flex items-center gap-3 pt-1">
+              {[
+                { href: "https://facebook.com/inboat", Icon: Facebook, label: "Facebook" },
+                { href: "https://instagram.com/inboat", Icon: Instagram, label: "Instagram" },
+                { href: "https://tiktok.com/@inboat", Icon: TikTokIcon, label: "TikTok" },
+                { href: "https://youtube.com/@inboat", Icon: Youtube, label: "YouTube" },
+              ].map(({ href, Icon, label }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-8 w-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-all"
+                  aria-label={label}
+                >
+                  <Icon className="h-4 w-4" />
+                </a>
+              ))}
+            </div>
           </div>
 
           {/* Navegação */}
           <div>
-            <h3 className="font-semibold text-foreground mb-4">Navegação</h3>
+            <h3 className="text-xs font-semibold text-primary uppercase tracking-widest mb-5">Navegação</h3>
             <ul className="space-y-3">
-              <li>
-                <Link href="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                  Início
-                </Link>
-              </li>
-              <li>
-                <Link href="/embarcacoes" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                  Embarcações
-                </Link>
-              </li>
-              <li>
-                <Link href="/como-funciona" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                  Como Funciona
-                </Link>
-              </li>
-              <li>
-                <Link href="/faq" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                  Perguntas Frequentes
-                </Link>
-              </li>
-              <li>
-                <Link href="/contato" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                  Contato
-                </Link>
-              </li>
+              {[
+                { href: "/", label: "Início" },
+                { href: "/embarcacoes", label: "Embarcações" },
+                { href: "/como-funciona", label: "Como Funciona" },
+                { href: "/faq", label: "Perguntas Frequentes" },
+                { href: "/contato", label: "Contato" },
+              ].map(({ href, label }) => (
+                <li key={href}>
+                  <Link href={href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    {label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
           {/* Legal */}
           <div>
-            <h3 className="font-semibold text-foreground mb-4">Legal</h3>
+            <h3 className="text-xs font-semibold text-primary uppercase tracking-widest mb-5">Legal</h3>
             <ul className="space-y-3">
-              <li>
-                <Link href="/termos-de-uso" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                  Termos de Uso
-                </Link>
-              </li>
-              <li>
-                <Link href="/politica-de-privacidade" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                  Política de Privacidade
-                </Link>
-              </li>
+              {[
+                { href: "/termos-de-uso", label: "Termos de Uso" },
+                { href: "/politica-de-privacidade", label: "Política de Privacidade" },
+              ].map(({ href, label }) => (
+                <li key={href}>
+                  <Link href={href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    {label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Contato & Redes Sociais */}
+          {/* Contato */}
           <div>
-            <h3 className="font-semibold text-foreground mb-4">Contato</h3>
+            <h3 className="text-xs font-semibold text-primary uppercase tracking-widest mb-5">Contato</h3>
             <ul className="space-y-3">
-              <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Mail className="h-4 w-4" />
-                <a href="mailto:contato@inboat.com.br" className="hover:text-primary transition-colors">
+              <li>
+                <a
+                  href="mailto:contato@inboat.com.br"
+                  className="flex items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Mail className="h-4 w-4 text-primary/70 shrink-0" />
                   contato@inboat.com.br
                 </a>
               </li>
-              <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Phone className="h-4 w-4" />
-                <a href="tel:+551140004000" className="hover:text-primary transition-colors">
+              <li>
+                <a
+                  href="tel:+551140004000"
+                  className="flex items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Phone className="h-4 w-4 text-primary/70 shrink-0" />
                   +55 11 4000-4000
                 </a>
               </li>
-              <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4 mt-0.5" />
-                <span>São Paulo, SP - Brasil</span>
+              <li className="flex items-start gap-2.5 text-sm text-muted-foreground">
+                <MapPin className="h-4 w-4 text-primary/70 shrink-0 mt-0.5" />
+                São Paulo, SP — Brasil
               </li>
             </ul>
-            <div className="flex items-center gap-3 mt-4">
-              <a
-                href="https://facebook.com/inboat"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-primary transition-colors"
-                aria-label="Facebook"
-              >
-                <Facebook className="h-5 w-5" />
-              </a>
-              <a
-                href="https://instagram.com/inboat"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-primary transition-colors"
-                aria-label="Instagram"
-              >
-                <Instagram className="h-5 w-5" />
-              </a>
-              <a
-                href="https://tiktok.com/@inboat"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-primary transition-colors"
-                aria-label="TikTok"
-              >
-                <TikTokIcon className="h-5 w-5" />
-              </a>
-              <a
-                href="https://youtube.com/@inboat"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-primary transition-colors"
-                aria-label="YouTube"
-              >
-                <Youtube className="h-5 w-5" />
-              </a>
-            </div>
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+        <div className="mt-14 pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
           <p>&copy; {new Date().getFullYear()} InBoat. Todos os direitos reservados.</p>
           <div className="flex items-center gap-4">
-            <Link href="/termos-de-uso" className="hover:text-primary transition-colors">Termos de Uso</Link>
-            <span>|</span>
-            <Link href="/politica-de-privacidade" className="hover:text-primary transition-colors">Politica de Privacidade</Link>
-            <span>|</span>
-            <Link href="/admin" className="hover:text-primary transition-colors opacity-40 hover:opacity-100">Admin</Link>
+            <Link href="/termos-de-uso" className="hover:text-foreground transition-colors">
+              Termos de Uso
+            </Link>
+            <span className="text-border">|</span>
+            <Link href="/politica-de-privacidade" className="hover:text-foreground transition-colors">
+              Política de Privacidade
+            </Link>
+            <span className="text-border">|</span>
+            <Link href="/admin" className="hover:text-foreground transition-colors opacity-30 hover:opacity-70">
+              Admin
+            </Link>
           </div>
-        </div>
         </div>
       </div>
     </footer>
