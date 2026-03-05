@@ -177,6 +177,38 @@ export async function upsertPaginaLegal(slug: string, formData: FormData) {
   if (slug === "politica-de-privacidade") revalidatePath("/politica-de-privacidade")
 }
 
+// ── CONFIGURAÇÕES ─────────────────────────────────────────────
+
+export async function getConfiguracoes(): Promise<Record<string, string>> {
+  const supabase = await createClient()
+  const { data } = await supabase.from("configuracoes").select("chave, valor")
+  if (!data) return {}
+  return Object.fromEntries(data.map((r: { chave: string; valor: string }) => [r.chave, r.valor]))
+}
+
+export async function updateConfiguracao(chave: string, valor: string) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("configuracoes")
+    .upsert({ chave, valor, updated_at: new Date().toISOString() }, { onConflict: "chave" })
+  if (error) throw new Error(error.message)
+  revalidatePath("/")
+  revalidatePath("/admin/configuracoes")
+}
+
+export async function updateConfiguracoes(configs: Record<string, string>) {
+  const supabase = await createClient()
+  const rows = Object.entries(configs).map(([chave, valor]) => ({
+    chave,
+    valor,
+    updated_at: new Date().toISOString(),
+  }))
+  const { error } = await supabase.from("configuracoes").upsert(rows, { onConflict: "chave" })
+  if (error) throw new Error(error.message)
+  revalidatePath("/")
+  revalidatePath("/admin/configuracoes")
+}
+
 // ── AUTH ─────────────────────────────────────────────────────
 
 export async function signOut() {

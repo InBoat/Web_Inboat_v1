@@ -6,10 +6,16 @@ import { Badge } from "@/components/ui/badge"
 import { Anchor, DollarSign, Shield, Users, Wrench, HeartHandshake, MapPin, ArrowRight, ChevronRight } from "lucide-react"
 import Image from "next/image"
 import { getActiveBoats, siteContent } from "@/lib/data"
+import { getConfiguracoes } from "@/lib/actions"
 
-export default function HomePage() {
+export default async function HomePage() {
   const boats = getActiveBoats()
-  const { hero, howItWorks } = siteContent
+  const { howItWorks } = siteContent
+  const configs = await getConfiguracoes().catch(() => ({} as Record<string, string>))
+
+  const heroHeadline = configs.hero_headline || siteContent.hero.headline
+  const heroSubheadline = configs.hero_subheadline || siteContent.hero.subheadline
+  const heroImagem = configs.hero_imagem || "/hero-speedboat.jpg"
 
   const benefitIcons = [DollarSign, HeartHandshake, Wrench, Shield]
 
@@ -22,7 +28,7 @@ export default function HomePage() {
         <section className="relative min-h-[90vh] flex items-center overflow-hidden">
           <div className="absolute inset-0 z-0">
             <Image
-              src="/hero-speedboat.jpg"
+              src={heroImagem}
               alt="Lancha de luxo navegando em mar aberto"
               fill
               className="object-cover"
@@ -40,11 +46,11 @@ export default function HomePage() {
               </div>
 
               <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-tight text-balance">
-                {hero.headline}
+                {heroHeadline}
               </h1>
 
               <p className="text-base md:text-lg text-muted-foreground leading-relaxed text-pretty max-w-xl">
-                {hero.subheadline}
+                {heroSubheadline}
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 pt-2">

@@ -2,16 +2,18 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Anchor, LayoutDashboard, Ship, FileText, Home, LogOut, ScrollText } from "lucide-react"
+import { Anchor, LayoutDashboard, Ship, FileText, Home, LogOut, ScrollText, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
+import Image from "next/image"
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Embarcações", href: "/admin/embarcacoes", icon: Ship },
   { name: "Leads", href: "/admin/leads", icon: FileText },
   { name: "Conteúdo Legal", href: "/admin/conteudo", icon: ScrollText },
+  { name: "Configurações", href: "/admin/configuracoes", icon: Settings },
 ]
 
 export function AdminSidebar() {
@@ -28,9 +30,8 @@ export function AdminSidebar() {
   return (
     <aside className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
       <div className="p-6 border-b border-sidebar-border">
-        <Link href="/" className="flex items-center gap-2 font-bold text-xl text-sidebar-primary">
-          <Anchor className="h-7 w-7" />
-          <span>InBoat</span>
+        <Link href="/" className="flex items-center gap-2">
+          <Image src="/logo-inboat.svg" alt="InBoat" width={100} height={32} className="h-8 w-auto" />
         </Link>
         <p className="text-sm text-sidebar-foreground/60 mt-1">Painel Administrativo</p>
       </div>

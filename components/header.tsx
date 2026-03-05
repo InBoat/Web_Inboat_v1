@@ -1,10 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import { Anchor, Menu, X } from "lucide-react"
+import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
+import Image from "next/image"
 
 const navLinks = [
   { href: "/como-funciona", label: "Como Funciona" },
@@ -35,12 +36,7 @@ export function Header() {
       <nav className="container mx-auto flex h-18 items-center justify-between px-4 py-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="h-8 w-8 rounded-full border border-primary/50 flex items-center justify-center group-hover:border-primary transition-colors">
-            <Anchor className="h-4 w-4 text-primary" />
-          </div>
-          <span className="font-serif text-xl font-bold text-foreground tracking-wide">
-            In<span className="text-primary">Boat</span>
-          </span>
+          <Image src="/logo-inboat.svg" alt="InBoat" width={120} height={40} className="h-10 w-auto" priority />
         </Link>
 
         {/* Desktop Navigation */}
