@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next"
 import { Outfit, Playfair_Display } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
+import { ThemeProvider } from "@/components/theme-provider"
 import "./globals.css"
 
 const outfit = Outfit({
@@ -25,7 +26,10 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#1a2035",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c1420" },
+  ],
   initialScale: 1,
   width: "device-width",
 }
@@ -36,12 +40,19 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <body className={`font-sans antialiased ${outfit.variable} ${playfair.variable}`}>
-        <Suspense fallback={null}>
-          {children}
-          <Analytics />
-        </Suspense>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          <Suspense fallback={null}>
+            {children}
+            <Analytics />
+          </Suspense>
+        </ThemeProvider>
       </body>
     </html>
   )

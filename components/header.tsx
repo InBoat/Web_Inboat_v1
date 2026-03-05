@@ -1,9 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { Menu, X } from "lucide-react"
+import { Menu, X, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
+import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 
@@ -17,47 +18,76 @@ const navLinks = [
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const { theme, setTheme } = useTheme()
 
   useEffect(() => {
+    setMounted(true)
     const handleScroll = () => setScrolled(window.scrollY > 20)
     window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark")
+  const isDark = theme === "dark"
 
   return (
     <header
       className={cn(
         "sticky top-0 z-50 w-full transition-all duration-300",
         scrolled
-          ? "border-b border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-lg shadow-background/20"
-          : "bg-transparent border-b border-transparent"
+          ? "border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-sm"
+          : "bg-background border-b border-border"
       )}
     >
-      <nav className="container mx-auto flex h-18 items-center justify-between px-4 py-4">
+      <nav className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <Image src="/logo-inboat.svg" alt="InBoat" width={120} height={40} className="h-10 w-auto" priority />
+        <Link href="/" className="flex items-center shrink-0">
+          {mounted ? (
+            <Image
+              src="/logo-inboat.svg"
+              alt="InBoat"
+              width={110}
+              height={36}
+              className={cn("h-9 w-auto transition-all", isDark ? "brightness-0 invert" : "")}
+              priority
+            />
+          ) : (
+            <div className="h-9 w-28 rounded bg-muted animate-pulse" />
+          )}
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-7">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors tracking-wide"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               {link.label}
             </Link>
           ))}
         </div>
 
-        {/* CTA Buttons */}
-        <div className="hidden md:flex items-center gap-3">
+        {/* Right side: CTA + Theme Toggle */}
+        <div className="hidden md:flex items-center gap-2">
+          {/* Theme Toggle */}
+          {mounted && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              className="h-9 w-9 text-muted-foreground hover:text-foreground"
+              aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"}
+            >
+              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="sm"
-            className="text-muted-foreground hover:text-foreground hover:bg-accent"
+            className="text-muted-foreground hover:text-foreground text-sm font-medium"
             asChild
           >
             <a href="https://portal.inboat.com.br" target="_blank" rel="noopener noreferrer">
@@ -66,43 +96,53 @@ export function Header() {
           </Button>
           <Button
             size="sm"
-            className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold tracking-wide"
+            className="text-sm font-semibold text-white px-5"
+            style={{ background: "linear-gradient(135deg, #0c5280 0%, #0f6ea8 50%, #1e88c8 100%)" }}
             asChild
           >
             <Link href="/embarcacoes">Ver Embarcações</Link>
           </Button>
         </div>
 
-        {/* Mobile Menu Button */}
-        <button
-          className="md:hidden text-foreground"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Abrir menu"
-        >
-          {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+        {/* Mobile: Theme Toggle + Menu Button */}
+        <div className="md:hidden flex items-center gap-1">
+          {mounted && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              className="h-9 w-9 text-muted-foreground"
+              aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"}
+            >
+              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
+          )}
+          <button
+            className="h-9 w-9 flex items-center justify-center text-foreground"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Abrir menu"
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </nav>
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-border bg-background">
-          <div className="container mx-auto px-4 py-6 flex flex-col gap-5">
+          <div className="container mx-auto px-4 py-5 flex flex-col gap-4">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-1"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {link.label}
               </Link>
             ))}
-            <div className="pt-4 border-t border-border flex flex-col gap-2">
-              <Button
-                variant="outline"
-                className="w-full border-border text-foreground hover:bg-accent"
-                asChild
-              >
+            <div className="pt-3 border-t border-border flex flex-col gap-2">
+              <Button variant="outline" className="w-full" asChild>
                 <a
                   href="https://portal.inboat.com.br"
                   target="_blank"
@@ -113,7 +153,8 @@ export function Header() {
                 </a>
               </Button>
               <Button
-                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
+                className="w-full font-semibold text-white"
+                style={{ background: "linear-gradient(135deg, #0c5280 0%, #0f6ea8 50%, #1e88c8 100%)" }}
                 asChild
               >
                 <Link href="/embarcacoes" onClick={() => setMobileMenuOpen(false)}>
