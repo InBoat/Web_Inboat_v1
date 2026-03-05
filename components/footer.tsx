@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Mail, Phone, MapPin, Facebook, Instagram, Youtube } from "lucide-react"
-import Image from "next/image"
 import { getConfiguracoes } from "@/lib/actions"
+import { LogoAdaptive } from "@/components/logo-adaptive"
 
 function TikTokIcon({ className }: { className?: string }) {
   return (
@@ -36,7 +36,7 @@ export async function Footer() {
           {/* Brand */}
           <div className="space-y-5 md:col-span-1">
             <Link href="/" className="flex items-center gap-2.5 group w-fit">
-              <Image src="/logo-inboat.svg" alt="InBoat" width={120} height={40} className="h-10 w-auto" />
+              <LogoAdaptive width={120} height={40} />
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Multipropriedade de embarcações de alto padrão com gestão profissional completa. Navegue com economia e tranquilidade.

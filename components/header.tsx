@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
 import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
-import Image from "next/image"
+import { LogoAdaptive } from "@/components/logo-adaptive"
 
 const navLinks = [
   { href: "/como-funciona", label: "Como Funciona" },
@@ -23,13 +23,15 @@ export function Header() {
 
   useEffect(() => {
     setMounted(true)
+  }, [])
+
+  useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
     window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
   const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark")
-  const isDark = theme === "dark"
 
   return (
     <header
@@ -43,18 +45,7 @@ export function Header() {
       <nav className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center shrink-0">
-          {mounted ? (
-            <Image
-              src="/logo-inboat.svg"
-              alt="InBoat"
-              width={110}
-              height={36}
-              className={cn("h-9 w-auto transition-all", isDark ? "brightness-0 invert" : "")}
-              priority
-            />
-          ) : (
-            <div className="h-9 w-28 rounded bg-muted animate-pulse" />
-          )}
+          <LogoAdaptive width={110} height={36} className="h-9" />
         </Link>
 
         {/* Desktop Navigation */}
@@ -73,17 +64,17 @@ export function Header() {
         {/* Right side: CTA + Theme Toggle */}
         <div className="hidden md:flex items-center gap-2">
           {/* Theme Toggle */}
-          {mounted && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              className="h-9 w-9 text-muted-foreground hover:text-foreground"
-              aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"}
-            >
-              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className="h-9 w-9 text-muted-foreground hover:text-foreground"
+            aria-label="Alternar tema"
+            suppressHydrationWarning
+          >
+            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          </Button>
           <Button
             variant="ghost"
             size="sm"
@@ -106,17 +97,17 @@ export function Header() {
 
         {/* Mobile: Theme Toggle + Menu Button */}
         <div className="md:hidden flex items-center gap-1">
-          {mounted && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              className="h-9 w-9 text-muted-foreground"
-              aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"}
-            >
-              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className="h-9 w-9 text-muted-foreground relative"
+            aria-label="Alternar tema"
+            suppressHydrationWarning
+          >
+            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          </Button>
           <button
             className="h-9 w-9 flex items-center justify-center text-foreground"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
