@@ -1,13 +1,17 @@
 import type React from "react"
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/server"
 import { AdminSidebar } from "@/components/admin-sidebar"
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
+  if (!isSupabaseConfigured()) {
+    redirect("/admin-login")
+  }
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) redirect("/admin-login")
+  } catch {
     redirect("/admin-login")
   }
 

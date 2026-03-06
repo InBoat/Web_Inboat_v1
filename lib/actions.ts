@@ -240,13 +240,17 @@ export async function updateConfiguracoes(configs: Record<string, string>) {
 
 export async function getBlogCategorias() {
   if (!isSupabaseConfigured()) return []
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from("blog_categorias")
-    .select("*")
-    .order("nome", { ascending: true })
-  if (error) return []
-  return data ?? []
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from("blog_categorias")
+      .select("*")
+      .order("nome", { ascending: true })
+    if (error) return []
+    return data ?? []
+  } catch {
+    return []
+  }
 }
 
 export async function createBlogCategoria(formData: FormData) {

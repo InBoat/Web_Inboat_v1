@@ -50,7 +50,10 @@ export function BlogEditor({ artigo }: EditorProps) {
   })
 
   useEffect(() => {
-    fetch("/api/blog/categorias").then(r => r.json()).then(setCategorias)
+    fetch("/api/blog/categorias")
+      .then(r => r.json())
+      .then(setCategorias)
+      .catch(() => setCategorias([]))
   }, [])
 
   const handleChange = (key: string, value: any) => {
@@ -163,11 +166,12 @@ export function BlogEditor({ artigo }: EditorProps) {
           <div className="rounded-xl border border-border bg-card p-5 space-y-4">
             <div className="space-y-2">
               <Label>Categoria</Label>
-              <Select value={form.categoria_id} onValueChange={v => handleChange("categoria_id", v)}>
+              <Select value={form.categoria_id || "none"} onValueChange={v => handleChange("categoria_id", v === "none" ? "" : v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecionar categoria" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="none">Sem categoria</SelectItem>
                   {categorias.map((c: any) => (
                     <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
                   ))}
