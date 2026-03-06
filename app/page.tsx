@@ -16,6 +16,16 @@ export default async function HomePage() {
   const heroHeadline = configs.hero_headline || siteContent.hero.headline
   const heroSubheadline = configs.hero_subheadline || siteContent.hero.subheadline
   const heroImagem = configs.hero_imagem || "/hero-speedboat.jpg"
+  const heroHeadlineStyle = {
+    fontFamily: configs.hero_headline_font || "var(--font-serif)",
+    fontSize: configs.hero_headline_size || "clamp(2.5rem, 5vw, 4.5rem)",
+    color: configs.hero_headline_color || undefined,
+  }
+  const heroSubheadlineStyle = {
+    fontFamily: configs.hero_subheadline_font || "var(--font-sans)",
+    fontSize: configs.hero_subheadline_size || "1.125rem",
+    color: configs.hero_subheadline_color || undefined,
+  }
 
   const benefitIcons = [DollarSign, HeartHandshake, Wrench, Shield]
 
@@ -45,11 +55,17 @@ export default async function HomePage() {
                 <span>Multipropriedade Náutica</span>
               </div>
 
-              <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-tight text-balance">
+              <h1
+                className="font-bold leading-tight text-balance"
+                style={heroHeadlineStyle}
+              >
                 {heroHeadline}
               </h1>
 
-              <p className="text-base md:text-lg text-muted-foreground leading-relaxed text-pretty max-w-xl">
+              <p
+                className="leading-relaxed text-pretty max-w-xl"
+                style={heroSubheadlineStyle}
+              >
                 {heroSubheadline}
               </p>
 

@@ -1,20 +1,40 @@
 "use client"
 
-import { useState, useEffect, useTransition } from "react"
-import { Settings, Save, Image as ImageIcon, Share2, Phone } from "lucide-react"
+import { useState, useEffect, useTransition, useRef } from "react"
+import { Settings, Save, Image as ImageIcon, Share2, Phone, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { updateConfiguracoes } from "@/lib/actions"
+
+const FONTES = [
+  { value: "var(--font-serif)", label: "Playfair Display (serif)" },
+  { value: "var(--font-sans)", label: "Outfit (sans)" },
+  { value: "Georgia, serif", label: "Georgia" },
+  { value: "Arial, sans-serif", label: "Arial" },
+]
+
+const TAMANHOS = [
+  { value: "2.5rem", label: "Pequeno (2.5rem)" },
+  { value: "3rem", label: "Médio (3rem)" },
+  { value: "4rem", label: "Grande (4rem)" },
+  { value: "4.5rem", label: "Muito grande (4.5rem)" },
+  { value: "5rem", label: "Extra grande (5rem)" },
+  { value: "6rem", label: "Enorme (6rem)" },
+  { value: "7rem", label: "Máximo (7rem)" },
+]
 
 export default function ConfiguracoesPage() {
   const [configs, setConfigs] = useState<Record<string, string>>({})
   const [carregando, setCarregando] = useState(true)
+  const [uploading, setUploading] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [sucesso, setSucesso] = useState(false)
   const [erro, setErro] = useState("")
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetch("/api/configuracoes")
@@ -39,6 +59,26 @@ export default function ConfiguracoesPage() {
         setErro(e instanceof Error ? e.message : "Erro ao salvar.")
       }
     })
+  }
+
+  async function handleUploadHero(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    setErro("")
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+      const res = await fetch("/api/upload/hero", { method: "POST", body: formData })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Erro no upload")
+      set("hero_imagem", data.url)
+    } catch (e: unknown) {
+      setErro(e instanceof Error ? e.message : "Erro ao enviar imagem.")
+    } finally {
+      setUploading(false)
+      e.target.value = ""
+    }
   }
 
   if (carregando) {
@@ -96,6 +136,12 @@ export default function ConfiguracoesPage() {
                       hero_headline: configs.hero_headline ?? "",
                       hero_subheadline: configs.hero_subheadline ?? "",
                       hero_imagem: configs.hero_imagem ?? "",
+                      hero_headline_font: configs.hero_headline_font ?? "",
+                      hero_headline_size: configs.hero_headline_size ?? "",
+                      hero_headline_color: configs.hero_headline_color ?? "",
+                      hero_subheadline_font: configs.hero_subheadline_font ?? "",
+                      hero_subheadline_size: configs.hero_subheadline_size ?? "",
+                      hero_subheadline_color: configs.hero_subheadline_color ?? "",
                     })
                   }
                 >
@@ -113,9 +159,57 @@ export default function ConfiguracoesPage() {
                 onChange={(e) => set("hero_headline", e.target.value)}
                 placeholder="Ex: Propriedade compartilhada de embarcações de alto padrão"
               />
-              <p className="text-xs text-muted-foreground">
-                Este é o título em destaque na página inicial.
-              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Fonte</Label>
+                  <Select
+                    value={configs.hero_headline_font ?? "var(--font-serif)"}
+                    onValueChange={(v) => set("hero_headline_font", v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FONTES.map((f) => (
+                        <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Tamanho</Label>
+                  <Select
+                    value={configs.hero_headline_size ?? "5rem"}
+                    onValueChange={(v) => set("hero_headline_size", v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TAMANHOS.map((t) => (
+                        <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Cor</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="color"
+                      value={configs.hero_headline_color || "#0c1420"}
+                      onChange={(e) => set("hero_headline_color", e.target.value)}
+                      className="w-12 h-9 p-1 cursor-pointer"
+                    />
+                    <Input
+                      value={configs.hero_headline_color ?? ""}
+                      onChange={(e) => set("hero_headline_color", e.target.value)}
+                      placeholder="#0c1420"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -127,18 +221,90 @@ export default function ConfiguracoesPage() {
                 rows={3}
                 placeholder="Ex: Tenha acesso a lanchas premium com gestão profissional completa..."
               />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Fonte</Label>
+                  <Select
+                    value={configs.hero_subheadline_font ?? "var(--font-sans)"}
+                    onValueChange={(v) => set("hero_subheadline_font", v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FONTES.map((f) => (
+                        <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Tamanho</Label>
+                  <Select
+                    value={configs.hero_subheadline_size ?? "1.125rem"}
+                    onValueChange={(v) => set("hero_subheadline_size", v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0.875rem">Pequeno (0.875rem)</SelectItem>
+                      <SelectItem value="1rem">Normal (1rem)</SelectItem>
+                      <SelectItem value="1.125rem">Médio (1.125rem)</SelectItem>
+                      <SelectItem value="1.25rem">Grande (1.25rem)</SelectItem>
+                      <SelectItem value="1.5rem">Extra grande (1.5rem)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Cor</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="color"
+                      value={configs.hero_subheadline_color || "#64748b"}
+                      onChange={(e) => set("hero_subheadline_color", e.target.value)}
+                      className="w-12 h-9 p-1 cursor-pointer"
+                    />
+                    <Input
+                      value={configs.hero_subheadline_color ?? ""}
+                      onChange={(e) => set("hero_subheadline_color", e.target.value)}
+                      placeholder="#64748b"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="hero_imagem">URL da imagem de fundo</Label>
-              <Input
-                id="hero_imagem"
-                value={configs.hero_imagem ?? ""}
-                onChange={(e) => set("hero_imagem", e.target.value)}
-                placeholder="Ex: /hero-speedboat.jpg ou https://..."
-              />
+              <Label>Imagem de fundo</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="hero_imagem"
+                  value={configs.hero_imagem ?? ""}
+                  onChange={(e) => set("hero_imagem", e.target.value)}
+                  placeholder="URL ou /caminho/imagem.jpg"
+                />
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  className="hidden"
+                  onChange={handleUploadHero}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={uploading}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  {uploading ? "Enviando..." : "Escolher arquivo"}
+                </Button>
+              </div>
               <p className="text-xs text-muted-foreground">
-                Cole a URL de uma imagem externa (https://...) ou o caminho de um arquivo em /public (ex: /minha-foto.jpg).
+                Cole uma URL ou clique em &quot;Escolher arquivo&quot; para enviar uma imagem (requer bucket &quot;hero&quot; no Supabase Storage).
               </p>
               {configs.hero_imagem && (
                 <div className="relative h-40 rounded-md overflow-hidden border border-border mt-2">

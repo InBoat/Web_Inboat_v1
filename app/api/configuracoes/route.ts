@@ -1,10 +1,11 @@
-import { createClient } from "@/lib/supabase/server"
+import { getConfiguracoes } from "@/lib/actions"
 import { NextResponse } from "next/server"
 
 export async function GET() {
-  const supabase = await createClient()
-  const { data } = await supabase.from("configuracoes").select("chave, valor")
-  if (!data) return NextResponse.json({})
-  const configs = Object.fromEntries(data.map((r: { chave: string; valor: string }) => [r.chave, r.valor]))
-  return NextResponse.json(configs)
+  try {
+    const configs = await getConfiguracoes()
+    return NextResponse.json(configs)
+  } catch {
+    return NextResponse.json({})
+  }
 }
