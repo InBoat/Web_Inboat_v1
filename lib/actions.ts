@@ -177,6 +177,188 @@ export async function upsertPaginaLegal(slug: string, formData: FormData) {
   if (slug === "politica-de-privacidade") revalidatePath("/politica-de-privacidade")
 }
 
+// ── CONFIGURAÇÕES ─────────────────────────────────────────────
+
+export async function getConfiguracoes(): Promise<Record<string, string>> {
+  const supabase = await createClient()
+  const { data } = await supabase.from("configuracoes").select("chave, valor")
+  if (!data) return {}
+  return Object.fromEntries(data.map((r: { chave: string; valor: string }) => [r.chave, r.valor]))
+}
+
+export async function updateConfiguracao(chave: string, valor: string) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("configuracoes")
+    .upsert({ chave, valor, updated_at: new Date().toISOString() }, { onConflict: "chave" })
+  if (error) throw new Error(error.message)
+  revalidatePath("/")
+  revalidatePath("/admin/configuracoes")
+}
+
+export async function updateConfiguracoes(configs: Record<string, string>) {
+  const supabase = await createClient()
+  const rows = Object.entries(configs).map(([chave, valor]) => ({
+    chave,
+    valor,
+    updated_at: new Date().toISOString(),
+  }))
+  const { error } = await supabase.from("configuracoes").upsert(rows, { onConflict: "chave" })
+  if (error) throw new Error(error.message)
+  revalidatePath("/")
+  revalidatePath("/admin/configuracoes")
+}
+
+// ── BLOG CATEGORIAS ───────────────────────────────────────────
+
+export async function getBlogCategorias() {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("blog_categorias")
+    .select("*")
+    .order("nome", { ascending: true })
+  if (error) return []
+  return data ?? []
+}
+
+export async function createBlogCategoria(formData: FormData) {
+  const supabase = await createClient()
+  const { error } = await supabase.from("blog_categorias").insert({
+    nome: formData.get("nome") as string,
+    slug: formData.get("slug") as string,
+    descricao: formData.get("descricao") as string,
+  })
+  if (error) throw new Error(error.message)
+  revalidatePath("/admin/blog/categorias")
+  revalidatePath("/blog")
+}
+
+export async function updateBlogCategoria(id: string, formData: FormData) {
+  const supabase = await createClient()
+  const { error } = await supabase.from("blog_categorias").update({
+    nome: formData.get("nome") as string,
+    slug: formData.get("slug") as string,
+    descricao: formData.get("descricao") as string,
+  }).eq("id", id)
+  if (error) throw new Error(error.message)
+  revalidatePath("/admin/blog/categorias")
+  revalidatePath("/blog")
+}
+
+export async function deleteBlogCategoria(id: string) {
+  const supabase = await createClient()
+  const { error } = await supabase.from("blog_categorias").delete().eq("id", id)
+  if (error) throw new Error(error.message)
+  revalidatePath("/admin/blog/categorias")
+}
+
+// ── BLOG ARTIGOS ──────────────────────────────────────────────
+
+export async function getBlogArtigos(opts?: { status?: string; categoria_slug?: string; destaque?: boolean; limit?: number }) {
+  const supabase = await createClient()
+  let query = supabase
+    .from("blog_artigos")
+    .select("*, blog_categorias(id, nome, slug)")
+    .order("data_publicacao", { ascending: false })
+  if (opts?.status) query = query.eq("status", opts.status)
+  if (opts?.destaque) query = query.eq("destaque", true)
+  if (opts?.limit) query = query.limit(opts.limit)
+  if (opts?.categoria_slug) {
+    const { data: cat } = await supabase.from("blog_categorias").select("id").eq("slug", opts.categoria_slug).single()
+    if (cat) query = query.eq("categoria_id", cat.id)
+  }
+  const { data, error } = await query
+  if (error) return []
+  return data ?? []
+}
+
+export async function getBlogArtigoBySlug(slug: string) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("blog_artigos")
+    .select("*, blog_categorias(id, nome, slug)")
+    .eq("slug", slug)
+    .single()
+  if (error) return null
+  return data
+}
+
+export async function getBlogArtigoById(id: string) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("blog_artigos")
+    .select("*, blog_categorias(id, nome, slug)")
+    .eq("id", id)
+    .single()
+  if (error) return null
+  return data
+}
+
+export async function createBlogArtigo(formData: FormData) {
+  const supabase = await createClient()
+  const tags = (formData.get("tags") as string)?.split(",").map(s => s.trim()).filter(Boolean) ?? []
+  const { error } = await supabase.from("blog_artigos").insert({
+    titulo: formData.get("titulo") as string,
+    slug: formData.get("slug") as string,
+    categoria_id: formData.get("categoria_id") as string || null,
+    imagem_destaque: formData.get("imagem_destaque") as string || null,
+    conteudo: formData.get("conteudo") as string,
+    resumo: formData.get("resumo") as string || null,
+    autor: formData.get("autor") as string || "Equipe InBoat",
+    status: formData.get("status") as string || "rascunho",
+    destaque: formData.get("destaque") === "true",
+    popular: formData.get("popular") === "true",
+    recomendado: formData.get("recomendado") === "true",
+    tags,
+    meta_titulo: formData.get("meta_titulo") as string || null,
+    meta_descricao: formData.get("meta_descricao") as string || null,
+    data_publicacao: formData.get("status") === "publicado" ? new Date().toISOString() : null,
+  })
+  if (error) throw new Error(error.message)
+  revalidatePath("/admin/blog")
+  revalidatePath("/blog")
+}
+
+export async function updateBlogArtigo(id: string, formData: FormData) {
+  const supabase = await createClient()
+  const tags = (formData.get("tags") as string)?.split(",").map(s => s.trim()).filter(Boolean) ?? []
+  const status = formData.get("status") as string
+  const { data: existing } = await supabase.from("blog_artigos").select("data_publicacao, status").eq("id", id).single()
+  const data_publicacao =
+    status === "publicado" && existing?.status !== "publicado"
+      ? new Date().toISOString()
+      : existing?.data_publicacao ?? null
+  const { error } = await supabase.from("blog_artigos").update({
+    titulo: formData.get("titulo") as string,
+    slug: formData.get("slug") as string,
+    categoria_id: formData.get("categoria_id") as string || null,
+    imagem_destaque: formData.get("imagem_destaque") as string || null,
+    conteudo: formData.get("conteudo") as string,
+    resumo: formData.get("resumo") as string || null,
+    autor: formData.get("autor") as string || "Equipe InBoat",
+    status,
+    destaque: formData.get("destaque") === "true",
+    popular: formData.get("popular") === "true",
+    recomendado: formData.get("recomendado") === "true",
+    tags,
+    meta_titulo: formData.get("meta_titulo") as string || null,
+    meta_descricao: formData.get("meta_descricao") as string || null,
+    data_publicacao,
+    updated_at: new Date().toISOString(),
+  }).eq("id", id)
+  if (error) throw new Error(error.message)
+  revalidatePath("/admin/blog")
+  revalidatePath("/blog")
+}
+
+export async function deleteBlogArtigo(id: string) {
+  const supabase = await createClient()
+  const { error } = await supabase.from("blog_artigos").delete().eq("id", id)
+  if (error) throw new Error(error.message)
+  revalidatePath("/admin/blog")
+  revalidatePath("/blog")
+}
+
 // ── AUTH ─────────────────────────────────────────────────────
 
 export async function signOut() {
