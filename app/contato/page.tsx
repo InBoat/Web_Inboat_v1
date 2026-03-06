@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Mail, Phone, MapPin, MessageCircle, CheckCircle } from "lucide-react"
-import { createLead } from "@/lib/actions"
+
 
 const contactInfo = [
   {
@@ -55,12 +55,17 @@ export default function ContactPage() {
     const data = new FormData(form)
 
     try {
-      await createLead({
-        nome: data.get("nome") as string,
-        email: data.get("email") as string,
-        telefone: data.get("telefone") as string,
-        mensagem: `${data.get("assunto") ? "[" + data.get("assunto") + "] " : ""}${data.get("mensagem")}`,
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nome: data.get("nome"),
+          email: data.get("email"),
+          telefone: data.get("telefone"),
+          mensagem: `${data.get("assunto") ? "[" + data.get("assunto") + "] " : ""}${data.get("mensagem")}`,
+        }),
       })
+      if (!res.ok) throw new Error()
       setSuccess(true)
       form.reset()
     } catch {
