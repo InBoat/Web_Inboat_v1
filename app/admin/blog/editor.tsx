@@ -6,10 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { createBlogArtigo, updateBlogArtigo } from "@/lib/actions"
 import { Save, Eye, ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
 
@@ -67,17 +65,35 @@ export function BlogEditor({ artigo }: EditorProps) {
   async function handleSubmit(status: string) {
     setLoading(true)
     try {
-      const fd = new FormData()
-      Object.entries({ ...form, status }).forEach(([k, v]) => fd.append(k, String(v)))
+      const payload = {
+        ...form,
+        status,
+        tags: form.tags,
+      }
       if (artigo) {
-        await updateBlogArtigo(artigo.id, fd)
+        const res = await fetch(`/api/blog/artigos/${artigo.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        })
+        if (!res.ok) {
+          const err = await res.json()
+          throw new Error(err.error || "Erro ao atualizar")
+        }
       } else {
-        await createBlogArtigo(fd)
+        const res = await fetch("/api/blog/artigos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        })
+        if (!res.ok) {
+          const err = await res.json()
+          throw new Error(err.error || "Erro ao criar")
+        }
       }
       router.push("/admin/blog")
-      router.refresh()
-    } catch (e: any) {
-      alert("Erro ao salvar: " + e.message)
+    } catch (e: unknown) {
+      alert("Erro ao salvar: " + (e instanceof Error ? e.message : "Erro"))
     } finally {
       setLoading(false)
     }

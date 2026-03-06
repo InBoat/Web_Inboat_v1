@@ -2,12 +2,14 @@
 
 Execute no **SQL Editor** do Supabase (Dashboard > SQL Editor) na ordem indicada.
 
+**⚠️ Se aparecer "table blog_categorias not found": execute `004_create_blog.sql`**
+
 ## Ordem de execução
 
 1. `001_create_tables.sql` ou `01-create-tables.sql` – tabelas principais
 2. `002_create_paginas_legais.sql` – páginas legais
 3. `003_create_configuracoes.sql` – configurações do site
-4. `004_create_blog.sql` – blog
+4. **`004_create_blog.sql`** – **OBRIGATÓRIO para Blog (categorias e artigos)**
 5. **`005_hero_storage.sql`** – bucket para upload de imagens do hero (habilita "Escolher arquivo")
 6. **`006_add_hero_config_defaults.sql`** – estilos padrão do título e subtítulo (fonte, tamanho, cor)
 

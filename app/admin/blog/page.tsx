@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Plus, Pencil, Trash2, Search, Eye, EyeOff, Star } from "lucide-react"
 import Link from "next/link"
-import { deleteBlogArtigo } from "@/lib/actions"
 
 export default function AdminBlogPage() {
   const [artigos, setArtigos] = useState<any[]>([])
@@ -27,8 +26,13 @@ export default function AdminBlogPage() {
 
   async function handleDelete(id: string) {
     if (!confirm("Excluir este artigo permanentemente?")) return
-    await deleteBlogArtigo(id)
-    setArtigos(prev => prev.filter(a => a.id !== id))
+    try {
+      const res = await fetch(`/api/blog/artigos/${id}`, { method: "DELETE" })
+      if (!res.ok) throw new Error("Erro ao excluir")
+      setArtigos(prev => prev.filter(a => a.id !== id))
+    } catch {
+      alert("Erro ao excluir artigo")
+    }
   }
 
   return (

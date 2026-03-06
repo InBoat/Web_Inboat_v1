@@ -4,6 +4,8 @@ import { Ship, FileText, ScrollText } from "lucide-react"
 import Link from "next/link"
 import { getEmbarcacoes, getLeads } from "@/lib/actions"
 
+export const dynamic = "force-dynamic"
+
 export default async function AdminDashboard() {
   const [embarcacoes, leads] = await Promise.all([getEmbarcacoes(), getLeads()])
 

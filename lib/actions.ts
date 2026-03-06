@@ -120,13 +120,18 @@ export async function deleteEmbarcacao(id: string) {
 // ── LEADS ────────────────────────────────────────────────────
 
 export async function getLeads() {
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from("leads")
-    .select("*")
-    .order("created_at", { ascending: false })
-  if (error) throw new Error(error.message)
-  return data ?? []
+  if (!isSupabaseConfigured()) return []
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from("leads")
+      .select("*")
+      .order("created_at", { ascending: false })
+    if (error) return []
+    return data ?? []
+  } catch {
+    return []
+  }
 }
 
 export async function createLead(payload: {
@@ -174,14 +179,19 @@ export async function getFaqs() {
 // ── PÁGINAS LEGAIS ────────────────────────────────────────────
 
 export async function getPaginaLegal(slug: string) {
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from("paginas_legais")
-    .select("*")
-    .eq("slug", slug)
-    .single()
-  if (error) return null
-  return data
+  if (!isSupabaseConfigured()) return null
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from("paginas_legais")
+      .select("*")
+      .eq("slug", slug)
+      .single()
+    if (error) return null
+    return data
+  } catch {
+    return null
+  }
 }
 
 export async function upsertPaginaLegal(slug: string, formData: FormData) {
