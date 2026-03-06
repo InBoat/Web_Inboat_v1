@@ -7,10 +7,14 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Plus, Pencil, Trash2, X, Check, ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { createBlogCategoria, updateBlogCategoria, deleteBlogCategoria } from "@/lib/actions"
 
 function slugify(text: string) {
   return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").trim()
+}
+
+async function fetchCategorias() {
+  const res = await fetch("/api/blog/categorias")
+  return res.json()
 }
 
 export default function AdminBlogCategoriasPage() {
@@ -22,7 +26,7 @@ export default function AdminBlogCategoriasPage() {
   const [form, setForm] = useState({ nome: "", slug: "", descricao: "" })
 
   useEffect(() => {
-    fetch("/api/blog/categorias").then(r => r.json()).then(d => { setCategorias(d); setLoading(false) })
+    fetchCategorias().then(d => { setCategorias(d ?? []); setLoading(false) })
   }, [])
 
   const resetForm = () => { setForm({ nome: "", slug: "", descricao: "" }); setEditingId(null); setShowForm(false) }
@@ -30,19 +34,33 @@ export default function AdminBlogCategoriasPage() {
   async function handleSave() {
     setSaving(true)
     try {
-      const fd = new FormData()
-      Object.entries(form).forEach(([k, v]) => fd.append(k, v))
       if (editingId) {
-        await updateBlogCategoria(editingId, fd)
+        const res = await fetch("/api/blog/categorias", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: editingId, ...form }),
+        })
+        if (!res.ok) {
+          const err = await res.json()
+          throw new Error(err.error || "Erro ao atualizar")
+        }
         setCategorias(prev => prev.map(c => c.id === editingId ? { ...c, ...form } : c))
       } else {
-        await createBlogCategoria(fd)
-        const res = await fetch("/api/blog/categorias")
-        setCategorias(await res.json())
+        const res = await fetch("/api/blog/categorias", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        })
+        if (!res.ok) {
+          const err = await res.json()
+          throw new Error(err.error || "Erro ao criar")
+        }
+        const data = await fetchCategorias()
+        setCategorias(data ?? [])
       }
       resetForm()
-    } catch (e: any) {
-      alert("Erro: " + e.message)
+    } catch (e: unknown) {
+      alert("Erro: " + (e instanceof Error ? e.message : "Erro ao salvar"))
     } finally {
       setSaving(false)
     }
@@ -50,8 +68,13 @@ export default function AdminBlogCategoriasPage() {
 
   async function handleDelete(id: string) {
     if (!confirm("Excluir esta categoria? Os artigos vinculados ficarão sem categoria.")) return
-    await deleteBlogCategoria(id)
-    setCategorias(prev => prev.filter(c => c.id !== id))
+    try {
+      const res = await fetch(`/api/blog/categorias?id=${id}`, { method: "DELETE" })
+      if (!res.ok) throw new Error("Erro ao excluir")
+      setCategorias(prev => prev.filter(c => c.id !== id))
+    } catch (e) {
+      alert("Erro ao excluir")
+    }
   }
 
   function startEdit(cat: any) {
