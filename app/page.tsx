@@ -26,7 +26,7 @@ export default async function HomePage() {
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative min-h-[90vh] flex items-center overflow-hidden">
-          <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 z-0 pointer-events-none">
             <Image
               src={heroImagem}
               alt="Lancha de luxo navegando em mar aberto"

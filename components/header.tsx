@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Menu, X, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
@@ -17,10 +18,16 @@ const navLinks = [
 ]
 
 export function Header() {
+  const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [mounted, setMounted] = useState(false)
   const { theme, setTheme } = useTheme()
+
+  const handleNavClick = (href: string) => {
+    setMobileMenuOpen(false)
+    router.push(href)
+  }
 
   useEffect(() => {
     setMounted(true)
@@ -37,7 +44,7 @@ export function Header() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full transition-all duration-300",
+        "sticky top-0 z-50 w-full transition-all duration-300 pointer-events-auto",
         scrolled
           ? "border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-sm"
           : "bg-background border-b border-border"
@@ -55,7 +62,7 @@ export function Header() {
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer py-2"
             >
               {link.label}
             </Link>
@@ -136,14 +143,14 @@ export function Header() {
         <div className="md:hidden border-t border-border bg-background">
           <div className="container mx-auto px-4 py-5 flex flex-col gap-4">
             {navLinks.map((link) => (
-              <Link
+              <button
                 key={link.href}
-                href={link.href}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-1"
-                onClick={() => setMobileMenuOpen(false)}
+                type="button"
+                className="text-left text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-3 cursor-pointer"
+                onClick={() => handleNavClick(link.href)}
               >
                 {link.label}
-              </Link>
+              </button>
             ))}
             <div className="pt-3 border-t border-border flex flex-col gap-2">
               <Button variant="outline" className="w-full" asChild>
@@ -157,13 +164,11 @@ export function Header() {
                 </a>
               </Button>
               <Button
-                className="w-full font-semibold text-white"
+                className="w-full font-semibold text-white cursor-pointer"
                 style={{ background: "linear-gradient(135deg, #0c5280 0%, #0f6ea8 50%, #1e88c8 100%)" }}
-                asChild
+                onClick={() => handleNavClick("/embarcacoes")}
               >
-                <Link href="/embarcacoes" onClick={() => setMobileMenuOpen(false)}>
-                  Ver Embarcações
-                </Link>
+                Ver Embarcações
               </Button>
             </div>
           </div>

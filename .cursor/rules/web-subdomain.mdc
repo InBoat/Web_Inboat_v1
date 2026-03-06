@@ -1,0 +1,19 @@
+---
+description: Projeto web - subdomínio do domínio principal. Não interferir no projeto app.
+alwaysApply: true
+---
+
+# Projeto Web InBoat
+
+Este workspace é o projeto **web** (subdomínio web do domínio principal).
+
+## Limites do projeto
+
+- **Este projeto**: Web (site institucional, painel admin, blog, embarcações)
+- **Outro projeto**: App (subdomínio app) — **NÃO modificar** arquivos ou código do app
+
+## Regras
+
+1. Trabalhar **apenas** em arquivos dentro deste workspace (`Novo 05-03` / Web_Inboat_v1)
+2. Nunca sugerir alterações em pastas ou repositórios do projeto **app**
+3. Mesmo domínio, subdomínios diferentes: `web.` e `app.` — manter separados

@@ -1,11 +1,29 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { boats, faqs as faqsMock } from "@/lib/data"
 
 // ── EMBARCACOES ──────────────────────────────────────────────
 
+const mapBoatToEmbarcacao = (b: (typeof boats)[0]) => ({
+  id: b.id,
+  nome: b.name,
+  tipo: b.model,
+  imagens: b.images,
+  localizacao: b.location,
+  capacidade: b.capacity,
+  comprimento: `${b.length_meters}m`,
+  preco_mensal: b.price_per_share,
+  destaque: false,
+  motor: b.specifications?.engine,
+  velocidade_max: b.specifications?.max_speed,
+  descricao: b.description,
+  caracteristicas: Object.entries(b.specifications || {}).map(([k, v]) => `${k}: ${v}`),
+})
+
 export async function getEmbarcacoes() {
+  if (!isSupabaseConfigured()) return boats.map(mapBoatToEmbarcacao)
   const supabase = await createClient()
   const { data, error } = await supabase
     .from("embarcacoes")
@@ -16,6 +34,7 @@ export async function getEmbarcacoes() {
 }
 
 export async function getEmbarcacoesAtivas() {
+  if (!isSupabaseConfigured()) return boats.filter((b) => b.status === "active").map(mapBoatToEmbarcacao)
   const supabase = await createClient()
   const { data, error } = await supabase
     .from("embarcacoes")
@@ -27,6 +46,10 @@ export async function getEmbarcacoesAtivas() {
 }
 
 export async function getEmbarcacaoById(id: string) {
+  if (!isSupabaseConfigured()) {
+    const b = boats.find((x) => x.id === id)
+    return b ? mapBoatToEmbarcacao(b) : null
+  }
   const supabase = await createClient()
   const { data, error } = await supabase
     .from("embarcacoes")
@@ -135,6 +158,9 @@ export async function updateLeadStatus(id: string, status: string) {
 // ── FAQS ─────────────────────────────────────────────────────
 
 export async function getFaqs() {
+  if (!isSupabaseConfigured()) {
+    return faqsMock.map((f) => ({ id: f.id, pergunta: f.question, resposta: f.answer, ordem: f.order }))
+  }
   const supabase = await createClient()
   const { data, error } = await supabase
     .from("faqs")
@@ -180,6 +206,7 @@ export async function upsertPaginaLegal(slug: string, formData: FormData) {
 // ── CONFIGURAÇÕES ─────────────────────────────────────────────
 
 export async function getConfiguracoes(): Promise<Record<string, string>> {
+  if (!isSupabaseConfigured()) return {}
   const supabase = await createClient()
   const { data } = await supabase.from("configuracoes").select("chave, valor")
   if (!data) return {}
@@ -212,6 +239,7 @@ export async function updateConfiguracoes(configs: Record<string, string>) {
 // ── BLOG CATEGORIAS ───────────────────────────────────────────
 
 export async function getBlogCategorias() {
+  if (!isSupabaseConfigured()) return []
   const supabase = await createClient()
   const { data, error } = await supabase
     .from("blog_categorias")
@@ -255,6 +283,7 @@ export async function deleteBlogCategoria(id: string) {
 // ── BLOG ARTIGOS ──────────────────────────────────────────────
 
 export async function getBlogArtigos(opts?: { status?: string; categoria_slug?: string; destaque?: boolean; limit?: number }) {
+  if (!isSupabaseConfigured()) return []
   const supabase = await createClient()
   let query = supabase
     .from("blog_artigos")
