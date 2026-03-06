@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Anchor, LayoutDashboard, Ship, FileText, Home, LogOut, ScrollText, Settings } from "lucide-react"
+import { LayoutDashboard, Ship, FileText, Home, LogOut, ScrollText, Settings, BookOpen } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
@@ -11,6 +11,7 @@ import Image from "next/image"
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Embarcações", href: "/admin/embarcacoes", icon: Ship },
+  { name: "Blog", href: "/admin/blog", icon: BookOpen },
   { name: "Leads", href: "/admin/leads", icon: FileText },
   { name: "Conteúdo Legal", href: "/admin/conteudo", icon: ScrollText },
   { name: "Configurações", href: "/admin/configuracoes", icon: Settings },
@@ -38,7 +39,7 @@ export function AdminSidebar() {
 
       <nav className="flex-1 p-4 space-y-1">
         {navigation.map((item) => {
-          const isActive = pathname === item.href
+          const isActive = item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href)
           return (
             <Link
               key={item.name}

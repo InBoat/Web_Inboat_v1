@@ -11,6 +11,7 @@ import { LogoAdaptive } from "@/components/logo-adaptive"
 const navLinks = [
   { href: "/como-funciona", label: "Como Funciona" },
   { href: "/embarcacoes", label: "Embarcações" },
+  { href: "/blog", label: "Conteúdo" },
   { href: "/faq", label: "Perguntas Frequentes" },
   { href: "/contato", label: "Contato" },
 ]
