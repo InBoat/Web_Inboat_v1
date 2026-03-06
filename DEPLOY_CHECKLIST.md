@@ -15,9 +15,16 @@ Acesse **Supabase Dashboard > SQL Editor** e execute na ordem:
 | 5 | `scripts/005_hero_storage.sql` | Bucket para upload de imagens do hero |
 | 6 | `scripts/006_add_hero_config_defaults.sql` | Estilos padrão do hero |
 
-### Erro "Could not find the table blog_categorias"?
+### Erro "Could not find the table blog_categorias" ou "blog_categories"?
 
-Execute `scripts/004_create_blog.sql` no SQL Editor do Supabase.
+**Execute `scripts/RUN_ESTE_PRIMEIRO_BLOG.sql`** no SQL Editor do Supabase.
+
+Passo a passo:
+1. https://supabase.com/dashboard → seu projeto
+2. Menu lateral: **SQL Editor** → **New query**
+3. Abra o arquivo `scripts/RUN_ESTE_PRIMEIRO_BLOG.sql` do projeto
+4. Copie TODO o conteúdo e cole no editor
+5. Clique em **RUN** (ou Ctrl+Enter)
 
 ## 2. Variáveis de ambiente no Vercel
 

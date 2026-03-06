@@ -40,9 +40,13 @@ export default function AdminBlogCategoriasPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id: editingId, ...form }),
         })
+        const errData = await res.json().catch(() => ({}))
         if (!res.ok) {
-          const err = await res.json()
-          throw new Error(err.error || "Erro ao atualizar")
+          const errMsg = errData.error || "Erro ao atualizar"
+          if (errMsg.includes("blog_categor") || errMsg.includes("schema cache")) {
+            throw new Error("TABELA_NAO_EXISTE")
+          }
+          throw new Error(errMsg)
         }
         setCategorias(prev => prev.map(c => c.id === editingId ? { ...c, ...form } : c))
       } else {
@@ -51,16 +55,25 @@ export default function AdminBlogCategoriasPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(form),
         })
+        const errData = await res.json().catch(() => ({}))
         if (!res.ok) {
-          const err = await res.json()
-          throw new Error(err.error || "Erro ao criar")
+          const errMsg = errData.error || "Erro ao criar"
+          if (errMsg.includes("blog_categor") || errMsg.includes("schema cache")) {
+            throw new Error("TABELA_NAO_EXISTE")
+          }
+          throw new Error(errMsg)
         }
         const data = await fetchCategorias()
         setCategorias(data ?? [])
       }
       resetForm()
     } catch (e: unknown) {
-      alert("Erro: " + (e instanceof Error ? e.message : "Erro ao salvar"))
+      const msg = e instanceof Error ? e.message : "Erro ao salvar"
+      if (msg === "TABELA_NAO_EXISTE" || msg.includes("blog_categor") || msg.includes("schema cache")) {
+        alert("A tabela do blog não existe no Supabase.\n\n1. Acesse supabase.com/dashboard\n2. SQL Editor > New query\n3. Abra o arquivo: scripts/RUN_ESTE_PRIMEIRO_BLOG.sql\n4. Cole o conteúdo e clique em RUN")
+      } else {
+        alert("Erro: " + msg)
+      }
     } finally {
       setSaving(false)
     }
