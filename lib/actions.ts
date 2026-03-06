@@ -1,6 +1,6 @@
 "use server"
 
-import { createClient, isSupabaseConfigured } from "@/lib/supabase/server"
+import { createClient, createServiceClient, isSupabaseConfigured } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { boats, faqs as faqsMock } from "@/lib/data"
 
@@ -254,34 +254,31 @@ export async function getBlogCategorias() {
 }
 
 export async function createBlogCategoria(formData: FormData) {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { error } = await supabase.from("blog_categorias").insert({
     nome: formData.get("nome") as string,
     slug: formData.get("slug") as string,
     descricao: formData.get("descricao") as string,
   })
   if (error) throw new Error(error.message)
-  revalidatePath("/admin/blog/categorias")
   revalidatePath("/blog")
 }
 
 export async function updateBlogCategoria(id: string, formData: FormData) {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { error } = await supabase.from("blog_categorias").update({
     nome: formData.get("nome") as string,
     slug: formData.get("slug") as string,
     descricao: formData.get("descricao") as string,
   }).eq("id", id)
   if (error) throw new Error(error.message)
-  revalidatePath("/admin/blog/categorias")
   revalidatePath("/blog")
 }
 
 export async function deleteBlogCategoria(id: string) {
-  const supabase = await createClient()
+  const supabase = createServiceClient()
   const { error } = await supabase.from("blog_categorias").delete().eq("id", id)
   if (error) throw new Error(error.message)
-  revalidatePath("/admin/blog/categorias")
 }
 
 // ── BLOG ARTIGOS ──────────────────────────────────────────────

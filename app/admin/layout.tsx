@@ -1,20 +1,11 @@
 import type React from "react"
-import { redirect } from "next/navigation"
-import { createClient, isSupabaseConfigured } from "@/lib/supabase/server"
 import { AdminSidebar } from "@/components/admin-sidebar"
 
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  if (!isSupabaseConfigured()) {
-    redirect("/admin-login")
-  }
-  try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) redirect("/admin-login")
-  } catch {
-    redirect("/admin-login")
-  }
-
+/**
+ * Layout do admin. A autenticação é feita pelo middleware (lib/supabase/middleware.ts).
+ * Evitamos createClient/getUser aqui para não gerar erros de Server Components durante revalidação.
+ */
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen bg-background">
       <AdminSidebar />
